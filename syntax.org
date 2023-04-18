@@ -1,0 +1,45 @@
+#+title: Syntax
+#+author: Sau P
+#+date: 2023-04-17
+
+* Syntax of our language
+
+This language will be a domain specific language specialising in the manipulation of tiles.
+
+** Backus-Naur Form
+
+#+begin_src java -n
+<program> ::= <tile-definitions> <tiling-rules>
+<tile-definitions> ::= <tile-definition> | <tile-definitions> <tile-definition>
+<tile-definition> ::= "tile" <tile-name> "{" <cell-rows> "}"
+<tile-name> ::= <identifier>
+<cell-rows> ::= <cell-row> | <cell-rows> <cell-row>
+<cell-row> ::= <cell> | <cell-row> <cell>
+<cell> ::= "0" | "1"
+<tiling-rules> ::= <tiling-rule> | <tiling-rules> <tiling-rule>
+<tiling-rule> ::= <tile-name> "->" <tile-set>
+<tile-set> ::= <tile> | <tile-set> <tile>
+<tile> ::= <tile-name> | <tile-rotation> <tile>
+<tile-rotation> ::= "R" | "L" | "U" | "D"
+<identifier> ::= <alpha> | <identifier> <alpha> | <identifier> <digit>
+<alpha> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_"
+<digit> ::= "0" | "1" | ... | "9"
+#+end_src
+
+*** Explanation
+
+1. A program consists of tile-definitions and tiling-rules.
+2. Tile-definitions allows you to compound multiple tiles together.
+3. A tile-definition defines a tile with a tile-name and cell-rows.
+4. A tile-name is an identifier that uniquely identifies a tile.
+5. cell-rows consists of one or more cell-row.
+6. A cell-row is a sequence of cell values.
+7. A cell is either "0" or "1", representing an empty or filled cell, respectively.
+8. tiling-rules specifies how tiles can be combined to form larger tiles.
+9. A tiling-rule maps a tile-name to a tile-set.
+10. A tile-set consists of one or more tile.
+11. A tile can be a tile-name or a rotated tile.
+12. A tile-rotation specifies a rotation of a tile, with "R", "L", "U", and "D" representing right, left, up, and down rotations, respectively.
+13. An identifier is a sequence of one or more alphanumeric characters or underscores, starting with an alphabet character.
+14. An alpha is an uppercase or lowercase alphabet character or underscore.
+15. A digit is a number from 0 to 9.
