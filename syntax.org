@@ -61,6 +61,8 @@ This language will be a domain specific language specialising in the manipulatio
 <extension> ::= <identifier>
 
 <read-file> ::= "readFile" "(" <file> ")"
+<built-in-function> ::= "print" | "readFile"
+<function-call> ::= <func-name> | <built-in-function> "(" <arguments> ")" ";"
 
 #+end_src
 
@@ -70,162 +72,147 @@ This language will be a domain specific language specialising in the manipulatio
 
 
 1. ~<program> ::= <tile-definitions> <tiling-rules> <functions>~
-
- A program consists of tile definitions, tiling rules, and functions.
-
+   1. A program consists of tile definitions, tiling rules, and functions.
 
 2. ~<tile-definitions> ::= <tile-definition> | <tile-definitions> <tile-definition>~
+   1. Tile definitions can be a single tile definition or multiple tile definitions.
 
-Tile definitions can be a single tile definition or multiple tile definitions.
+3. ~<tile-definition> ::= "tile" <tile-name> "{" <cell-rows> "}"~
+   1. A tile definition starts with the keyword tile, followed by a tile name, an opening curly brace, cell rows, and a closing curly brace.
+   2. Example: tile A { 010 101 010 }
 
-<tile-definition> ::= "tile" <tile-name> "{" <cell-rows> "}"
-A tile definition starts with the keyword tile, followed by a tile name, an opening curly brace, cell rows, and a closing curly brace.
+4. ~<tile-name> ::= <identifier>~ A tile name is an identifier.
 
-Example: tile A { 010 101 010 }
+5. ~<cell-rows> ::= <cell-row> | <cell-rows> <cell-row>~
+   1. Cell rows can be a single cell row or multiple cell rows.
 
-<tile-name> ::= <identifier>
-A tile name is an identifier.
+6. ~<cell-row> ::= <cell> | <cell-row> <cell>~
+   1. A cell row can be a single cell or multiple cells.
 
-<cell-rows> ::= <cell-row> | <cell-rows> <cell-row>
-Cell rows can be a single cell row or multiple cell rows.
+7. ~<cell> ::= "0" | "1"~
+   1. A cell can be either "0" or "1".
 
-<cell-row> ::= <cell> | <cell-row> <cell>
-A cell row can be a single cell or multiple cells.
+8. ~<tiling-rules> ::= <tiling-rule> | <tiling-rules> <tiling-rule>~
+   1. Tiling rules can be a single tiling rule or multiple tiling rules.
 
-<cell> ::= "0" | "1"
-A cell can be either "0" or "1".
+9. ~<tiling-rule> ::= <tile-name> "->" <tile-set>~
+   1. A tiling rule consists of a tile name, followed by the symbol "->", and then a tile set.
+   2. Example: A -> B R C L D U
 
-<tiling-rules> ::= <tiling-rule> | <tiling-rules> <tiling-rule>
-Tiling rules can be a single tiling rule or multiple tiling rules.
+10. ~<tile-set> ::= <tile> | <tile-set> <tile>~
+    1. A tile set can be a single tile or multiple tiles.
+11.
+12. ~<tile> ::= <tile-name> | <tile-rotation> <tile>~
+    1. A tile can be a tile name or a tile rotation followed by a tile.
+13.
+14. ~<tile-rotation> ::= "R" | "L" | "U" | "D"~
+    1. A tile rotation can be "R" (right), "L" (left), "U" (upside-down), or "D" (down).
 
-<tiling-rule> ::= <tile-name> "->" <tile-set>
-A tiling rule consists of a tile name, followed by the symbol "->", and then a tile set.
+15. ~<functions> ::= <function> | <functions> <function>~
+    1. Functions can be a single function or multiple functions.
 
-Example: A -> B R C L D U
+16. ~<function> ::= "func" <func-name> "(" <parameters> ")" "{" <statements> "}"~
+    1. A function is defined with the keyword func, followed by a function name, parameters enclosed in parentheses, and a block of statements enclosed in curly braces.
+    2. Example: func add(int a, int b) { int result = a + b; return result; }
 
-<tile-set> ::= <tile> | <tile-set> <tile>
-A tile set can be a single tile or multiple tiles.
+17. ~<func-name> ::= <identifier>~
+    1. A function name is an identifier.
 
-<tile> ::= <tile-name> | <tile-rotation> <tile>
-A tile can be a tile name or a tile rotation followed by a tile.
+18. ~<parameters> ::= <parameter> | <parameters> "," <parameter>~
+    1. Parameters can be a single parameter or multiple parameters separated by commas.
 
-<tile-rotation> ::= "R" | "L" | "U" | "D"
-A tile rotation can be "R" (right), "L" (left), "U" (upside-down), or "D" (down).
+19. ~<parameter> ::= <type> <identifier>~
+    1. A parameter consists of a type and an identifier.
 
-<functions> ::= <function> | <functions> <function>
-Functions can be a single function or multiple functions.
+20. ~<statements> ::= <statement> | <statements> <statement>~
+    1. Statements can be a single statement or multiple statements.
 
-<function> ::= "func" <func-name> "(" <parameters> ")" "{" <statements> "}"
-A function is defined with the keyword func, followed by a function name, parameters enclosed in parentheses, and a block of statements enclosed in curly braces.
+21. ~<statement> ::= <variable-declaration> | <function-call> | <loop>~
+    1. A statement can be a variable declaration, a function call, or a loop.
 
-Example: func add(int a, int b) { int result = a + b; return result; }
+22. ~<variable-declaration> ::= <type> <identifier> "=" <expression> ";"~
+    1. A variable declaration consists of a type, an identifier, an equals sign, an expression, and a semicolon.
+    2. Example: int a = 5;
 
-<func-name> ::= <identifier>
-A function name is an identifier.
+23. ~<function-call> ::= <func-name> "(" <arguments> ")" ";"~
+24. A function call consists of a function name, arguments enclosed in parentheses, and a semicolon.
+    1. Example: add(3, 4);
 
-<parameters> ::= <parameter> | <parameters> "," <parameter>
-Parameters can be a single parameter or multiple parameters separated by commas.
+25. ~<arguments> ::= <expression> | <arguments> "," <expression>~
+26. Arguments can be a single expression or multiple expressions separated by commas.
 
-<parameter> ::= <type> <identifier>
-A parameter consists of a type and an identifier.
+27. ~<loop> ::= "for" <identifier> "in" <range> "{" <statements> "}"~
+    1. A loop consists of the keyword for, an identifier, the keyword in, a range, and a block of statements enclosed in curly braces.
+    2. Example: for i in 0..10 { print(i); }
 
-<statements> ::= <statement> | <statements> <statement>
-Statements can be a single statement or multiple statements.
+28. ~<range> ::= <expression> ".." <expression>~
+    1. A range is defined by two expressions separated by two dots.
 
-<statement> ::= <variable-declaration> | <function-call> | <loop>
-A statement can be a variable declaration, a function call, or a loop.
+29. ~<expression> ::= <literal> | <variable> | <function-call> |~
+        ~<expression> <operator> <expression>~
+    1. An expression can be a literal, a variable, a function call, or a combination of expressions with an operator.
 
-<variable-declaration> ::= <type> <identifier> "=" <expression> ";"
-A variable declaration consists of a type, an identifier, an equals sign, an expression, and a semicolon.
+30. ~<operator> ::= "+" | "-" | "*" | "/"~
+    1. An operator can be addition (+), subtraction (-), multiplication (*), or division (/).
 
-Example: int a = 5;
+31. ~<type> ::= "int" | "float" | "bool" | "string" | <tile-name>~
+    1. A type can be an integer (int), a floating-point number (float), a boolean (bool), a string, or a tile name.
 
-<function-call> ::= <func-name> "(" <arguments> ")" ";"
-A function call consists of a function name, arguments enclosed in parentheses, and a semicolon.
+32. ~<literal> ::= <int-literal> | <float-literal> | <bool-literal> | <string-literal>~
+    1. A literal can be an integer literal, a float literal, a boolean literal, or a string literal.
 
-Example: add(3, 4);
+33. ~<int-literal> ::= <digit> | <int-literal> <digit>~
+    1. An integer literal is composed of one or more digits.
+    2. Example: 42
 
-<arguments> ::= <expression> | <arguments> "," <expression>
-Arguments can be a single expression or multiple expressions separated by commas.
+34. ~<float-literal> ::= <int-literal> "." <int-literal>~
+    1. A float literal is composed of an integer literal, a decimal point, and another integer literal.
+    2. Example: 3.14
 
-<loop> ::= "for" <identifier> "in" <range> "{" <statements> "}"
-A loop consists of the keyword for, an identifier, the keyword in, a range, and a block of statements enclosed in curly braces.
+35. ~<bool-literal> ::= "true" | "false"~
+    1. A boolean literal can be either "true" or "false".
 
-Example: for i in 0..10 { print(i); }
+36. ~<string-literal> ::= '"' <characters> '"'~
+    1. A string literal is composed of characters enclosed in double quotes.
+    2. Example: "hello"
 
-<range> ::= <expression> ".." <expression>
-A range is defined by two expressions separated by two dots.
+37. ~<characters> ::= <char> | <characters> <char>~
+    1. Characters can be a single character or multiple characters.
 
-<expression> ::= <literal> | <variable> | <function-call> | <expression> <operator> <expression>
-An expression can be a literal, a variable, a function call, or a combination of expressions with an operator.
+38. ~<char> ::= Any printable ASCII character excluding double quotes(")~
+    1. A character can be any printable ASCII character, except for double quotes.
 
-<operator> ::= "+" | "-" | "*" | "/"
-An operator can be addition (+), subtraction (-), multiplication (*), or division (/).
+39. ~<identifier> ::= <alpha> | <identifier> <alpha> | <identifier> <digit>~
+    1. An identifier is composed of letters, underscores, or digits, but it must start with a letter or underscore.
 
-<type> ::= "int" | "float" | "bool" | "string" | <tile-name>
-A type can be an integer (int), a floating-point number (float), a boolean (bool), a string, or a tile name.
+40. ~<alpha> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_"~
+    1. Alpha characters can be uppercase letters, lowercase letters, or an underscore.
 
-<literal> ::= <int-literal> | <float-literal> | <bool-literal> | <string-literal>
-A literal can be an integer literal, a float literal, a boolean literal, or a string literal.
+41. ~<digit> ::= "0" | "1" | ... | "9"~
+    1. A digit can be any number from 0 to 9.
 
-<int-literal> ::= <digit> | <int-literal> <digit>
-An integer literal is composed of one or more digits.
+42. ~<file> ::= <filename> | <filepath>~
+    1. A file can be a filename or a filepath.
 
-Example: 42
+43. ~<filename> ::= <identifier> "." <extension>~
+    1. A filename consists of an identifier, a period, and an extension.
+    2. Example: input.txt
 
-<float-literal> ::= <int-literal> "." <int-literal>
-A float literal is composed of an integer literal, a decimal point, and another integer literal.
+44. ~<filepath> ::= <directory> | <filepath> <directory>~
+    1. A filepath is composed of one or more directories.
+    2. Example: folder1/folder2/input.txt
 
-Example: 3.14
+45. ~<directory> ::= <identifier> "/"~
+    1. A directory consists of an identifier followed by a forward slash.
 
-<bool-literal> ::= "true" | "false"
-A boolean literal can be either "true" or "false".
+46. ~<extension> ::= <identifier>~
+    1. An extension is an identifier.
 
-<string-literal> ::= '"' <characters> '"'
-A string literal is composed of characters enclosed in double quotes.
-
-Example: "hello"
-
-<characters> ::= <char> | <characters> <char>
-Characters can be a single character or multiple characters.
-
-<char> ::= Any printable ASCII character excluding double quotes(")
-A character can be any printable ASCII character, except for double quotes.
-
-<identifier> ::= <alpha> | <identifier> <alpha> | <identifier> <digit>
-An identifier is composed of letters, underscores, or digits, but it must start with a letter or underscore.
-
-<alpha> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_" Alpha characters can be uppercase letters, lowercase letters, or an underscore.
-
-<digit> ::= "0" | "1" | ... | "9"
-A digit can be any number from 0 to 9.
-
-<file> ::= <filename> | <filepath>
-A file can be a filename or a filepath.
-
-<filename> ::= <identifier> "." <extension>
-A filename consists of an identifier, a period, and an extension.
-
-Example: input.txt
-
-<filepath> ::= <directory> | <filepath> <directory>
-A filepath is composed of one or more directories.
-
-Example: folder1/folder2/input.txt
-
-<directory> ::= <identifier> "/"
-A directory consists of an identifier followed by a forward slash.
-
-<extension> ::= <identifier>
-An extension is an identifier.
-
-<read-file> ::= "readFile" "(" <file> ")"
-Reading a file consists of the keyword readFile, followed by the file enclosed in parentheses.
+47. ~<read-file> ::= "readFile" "(" <file> ")"~
+    1. Reading a file consists of the keyword readFile, followed by the file enclosed in parentheses.
 
 
 
-<built-in-function> ::= "print" | "readFile"
-<function-call> ::= <func-name> | <built-in-function> "(" <arguments> ")" ";"
 
 
 *** Example: readFile("input.txt")
