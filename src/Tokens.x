@@ -22,8 +22,8 @@ print                { \_ -> Print }
 rotate               { \_ -> Rotate }
 hjoin                { \_ -> HJoin }
 vjoin                { \_ -> VJoin }
-true                 { \_ -> True }
-false                { \_ -> False }
+true                 { \_ -> TTrue }
+false                { \_ -> TFalse }
 if                   { \_ -> If }
 else                 { \_ -> Else }
 ==                   { \_ -> Eq }
@@ -64,8 +64,8 @@ data Token =
     | Rotate
     | HJoin
     | VJoin
-    | True
-    | False
+    | TTrue
+    | TFalse
     | If
     | Else
     | Eq
