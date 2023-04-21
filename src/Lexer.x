@@ -120,5 +120,4 @@ data Token = KwLet
     | SymRCurly
     | Ident String
     deriving (Show)
-    
 }
