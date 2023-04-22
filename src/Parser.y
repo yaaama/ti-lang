@@ -52,7 +52,26 @@ import qualified Lexer
     false       { Lexer.FalseLit }
     int         { Lexer.IntLit $$ }
     id          { Lexer.Ident $$ }
-  
+
+-- Order of precendence
+-- 1. && || (left)
+-- 2. == != (left)
+-- 3. > < >= <= (non-assoc)
+-- 4. + - (left)
+-- 5. * / % (left)
+-- 6. ++ :: (left)
+-- 7. ~ ** (left)
+-- 8. ! 
+-- 9. ()
+
+%left '&&' '||'
+%nonassoc '==' '!=' '>' '<' '>=' '<='
+%left '+' '-'
+%left '*' '/' '%'
+%left '++' '::'
+%left '~' '**'
+%right '!'
+
 %%
 
 Program : Program Statement                                     { $2 : $1 }
@@ -66,70 +85,47 @@ Statement : VariableDeclaration                                 { $1 }
 
 VariableDeclaration : let id '=' Expression                     { VarDecl $2 $4 }
 
-ForLoop : for id in MathExpression '..' MathExpression Block    { ForLoop $2 $4 $6 $7 }
+ForLoop : for id in Expression '..' Expression Block            { ForLoop $2 $4 $6 $7 }
 
-IfStatement : if BooleanExpression Block                        { IfStmt $2 $3 }
-    | if BooleanExpression Block else Block                     { IfElseStmt $2 $3 $5 }
-
-Expression : MathExpression                                     { MathExpr $1 }
-    | TileExpression                                            { TileExpr $1 }
-    | BooleanExpression                                         { BoolExpr $1 }
+IfStatement : if Expression Block                               { IfStmt $2 $3 }
+    | if Expression Block else Block                            { IfElseStmt $2 $3 $5 }
 
 Block : '{' Program '}'                                         { $2 }
 
-MathExpression : MathExpression '+' MathTerm                    { AddOp $1 $3 }
-    | MathExpression '-' MathTerm                               { SubOp $1 $3 }
-    | MathTerm                                                  { $1 }
+Expression : Expression '&&' Expression                         { AndOp $1 $3 }                 
+    | Expression '||' Expression                                { OrOp $1 $3 }
+    | Expression '==' Expression                                { EqOp $1 $3 }
+    | Expression '!=' Expression                                { NeqOp $1 $3 }
+    | Expression '>' Expression                                 { GtOp $1 $3 }
+    | Expression '<' Expression                                 { LtOp $1 $3 }
+    | Expression '>=' Expression                                { GteOp $1 $3 }
+    | Expression '<=' Expression                                { LteOp $1 $3 }
+    | Expression '+' Expression                                 { AddOp $1 $3 }
+    | Expression '-' Expression                                 { SubOp $1 $3 }
+    | Expression '*' Expression                                 { MulOp $1 $3 }
+    | Expression '/' Expression                                 { DivOp $1 $3 }
+    | Expression '%' Expression                                 { ModOp $1 $3 }
+    | Expression '++' Expression                                { HJoinOp $1 $3 }
+    | Expression '::' Expression                                { VJoinOp $1 $3 }
+    | Expression '~' Expression                                 { RotateOp $1 $3 }
+    | Expression '**' Expression                                { ScaleOp $1 $3 }
+    | '!' Expression                                            { NotOp $2 }
+    | '(' Expression ')'                                        { $2 }
+    | id                                                        { Var $1 }
+    | int                                                       { IntLit $1 }
+    | true                                                      { TrueLit }
+    | false                                                     { FalseLit }
+    | TileDefinition                                            { $1 }
 
-MathTerm : MathTerm '*' Factor                                  { MulOp $1 $3 }
-    | MathTerm '/' Factor                                       { DivOp $1 $3 }
-    | MathTerm '%' Factor                                       { ModOp $1 $3 }
-    | Factor                                                    { $1 }
-
-Factor : int                                                    { IntLit $1 }
-    | id                                                        { MathVar $1 }
-    | '(' MathExpression ')'                                    { $2 }
-
-TileExpression : TileExpression '++' TileTerm                   { HJoinOp $1 $3 }
-    | TileExpression '::' TileTerm                              { VJoinOp $1 $3 }
-    | TileTerm                                                  { $1 }
-
-TileTerm : TileTerm '~' MathExpression                          { RotateOp $1 $3 }
-    | TileTerm '**' MathExpression                              { ScaleOp $1 $3 }
-    | TileTerm2                                                 { $1 }
-
-TileTerm2 : '[' RowDefinitions ']'                              { TileDef $2 }
-    | id                                                        { TileVar $1 }
-    | '(' TileExpression ')'                                    { $2 }
+TileDefinition : '[' RowDefinitions ']'                         { TileDef $2 }
 
 RowDefinitions : RowDefinitions RowDefinition                   { $2 : $1 }
     | {- empty -}                                               { [] }
 
 RowDefinition : '[' CellDefinitions ']'                         { $2 }
 
-CellDefinitions : CellDefinitions CellDefinition                { $2 : $1 }
+CellDefinitions : CellDefinitions Expression                    { $2 : $1 }
     | {- empty -}                                               { [] }
-
-CellDefinition : int                                            { CellValue $1 }                                        
-    | TileExpression                                            { CellExpr $1 }
-
-BooleanExpression : BooleanExpression '&&' BooleanTerm          { AndOp $1 $3 }
-    | BooleanExpression '||' BooleanTerm                        { OrOp $1 $3 }
-    | BooleanTerm                                               { $1 }
-
-BooleanTerm : '!' BooleanTerm2                                  { NotOp $2 }
-    | Expression '==' Expression                                { EqOp $1 $3 }
-    | Expression '!=' Expression                                { NeqOp $1 $3 }
-    | MathExpression '>' MathExpression                         { GtOp $1 $3 }
-    | MathExpression '<' MathExpression                         { LtOp $1 $3 }
-    | MathExpression '>=' MathExpression                        { GteOp $1 $3 }
-    | MathExpression '<=' MathExpression                        { LteOp $1 $3 }
-    | BooleanTerm2                                              { $1 }
-
-BooleanTerm2 : true                                             { TrueLit }
-    | false                                                     { FalseLit }
-    | id                                                        { BoolVar $1 }
-    | '(' BooleanExpression ')'                                 { $2 }
 
 {
 parseError :: [Lexer.Token] -> a
@@ -137,57 +133,36 @@ parseError _ = error "Parse error"
 
 data Statement = 
     VarDecl String Expr
-    | ForLoop String MathExpr MathExpr [Statement]
-    | IfStmt BoolExpr [Statement]
-    | IfElseStmt BoolExpr [Statement] [Statement]
+    | ForLoop String Expr Expr [Statement]
+    | IfStmt Expr [Statement]
+    | IfElseStmt Expr [Statement] [Statement]
     | PrintStmt Expr
     | Expr Expr
     deriving Show
 
 data Expr = 
-    MathExpr MathExpr
-    | TileExpr TileExpr
-    | BoolExpr BoolExpr
-    deriving Show
-
-data MathExpr = 
-    AddOp MathExpr MathExpr
-    | SubOp MathExpr MathExpr
-    | MulOp MathExpr MathExpr
-    | DivOp MathExpr MathExpr
-    | ModOp MathExpr MathExpr
+     AddOp Expr Expr
+    | SubOp Expr Expr
+    | MulOp Expr Expr
+    | DivOp Expr Expr
+    | ModOp Expr Expr
     | IntLit Int
-    | MathVar String
-    deriving Show
-
-data TileExpr = 
-    HJoinOp TileExpr TileExpr
-    | VJoinOp TileExpr TileExpr
-    | RotateOp TileExpr TileExpr
-    | ScaleOp TileExpr TileExpr
-    | TileVar String
-    | TileDef Matrix
-    deriving Show
-
-type Matrix = [[CellDef]]
-
-data CellDef = 
-    CellValue Int
-    | CellExpr TileExpr
-    deriving Show
-
-data BoolExpr =
-    AndOp BoolExpr BoolExpr
-    | OrOp BoolExpr BoolExpr
-    | NotOp BoolExpr
+    | AndOp Expr Expr
+    | OrOp Expr Expr
+    | NotOp Expr
     | EqOp Expr Expr
     | NeqOp Expr Expr
-    | GtOp MathExpr MathExpr
-    | LtOp MathExpr MathExpr
-    | GteOp MathExpr MathExpr
-    | LteOp MathExpr MathExpr
+    | GtOp Expr Expr
+    | LtOp Expr Expr
+    | GteOp Expr Expr
+    | LteOp Expr Expr
+    | HJoinOp Expr Expr
+    | VJoinOp Expr Expr
+    | RotateOp Expr Expr
+    | ScaleOp Expr Expr
+    | TileDef [[Expr]]
     | TrueLit
     | FalseLit
-    | BoolVar String
+    | Var String
     deriving Show
 }
