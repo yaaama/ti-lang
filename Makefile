@@ -12,5 +12,3 @@ Parser.hs: src/Parser.y
 
 clean:
 	rm -rf src/Lexer.hs src/Parser.hs build
-
-
