@@ -15,64 +15,64 @@ $white+;
 
 -- Keywords
 
-let                 { \_ -> KwLet }
-for                 { \_ -> KwFor }
-in                  { \_ -> KwIn }
-if                  { \_ -> KwIf }
-else                { \_ -> KwElse }
+let                 { \_ -> LetKw }
+for                 { \_ -> ForKw }
+in                  { \_ -> InKw }
+if                  { \_ -> IfKw }
+else                { \_ -> ElseKw }
 
--- Built in operations
+-- Built in functions
 
-rotate              { \_ -> OpRotate }
-scale               { \_ -> OpScale }
-hjoin               { \_ -> OpHJoin }
-vjoin               { \_ -> OpVJoin }
-tile                { \_ -> OpTile }
-print               { \_ -> OpPrint }
+print               { \_ -> PrintFn }
 
--- Symbols
+-- Ops
+
+-- Tiles
+
+~                   { \_ -> RotateOp }
+**                  { \_ -> ScaleOp }
+++                  { \_ -> HJoinOp }
+::                  { \_ -> VJoinOp }
 
 -- Comparisons
 
-==                  { \_ -> SymEq }
-!=                  { \_ -> SymNeq }
->                   { \_ -> SymGt }
-<                   { \_ -> SymLt }
->=                  { \_ -> SymGte }
-<=                  { \_ -> SymLte }
+==                  { \_ -> EqOp }
+!=                  { \_ -> NeqOp }
+>                   { \_ -> GtOp }
+<                   { \_ -> LtOp }
+>=                  { \_ -> GteOp }
+<=                  { \_ -> LteOp }
 
 -- Maths
 
-\+                  { \_ -> SymAdd }
-\-                  { \_ -> SymSub }
-\*                  { \_ -> SymMul }
-\/                  { \_ -> SymDiv }
-%                   { \_ -> SymMod }
+\+                  { \_ -> AddOp }
+\-                  { \_ -> SubOp }
+\*                  { \_ -> MulOp }
+\/                  { \_ -> DivOp }
+%                   { \_ -> ModOp }
 
 -- Boolean
 
-&&                  { \_ -> SymAnd }
-\|\|                { \_ -> SymOr }
-!                   { \_ -> SymNot }
+&&                  { \_ -> AndOp }
+\|\|                { \_ -> OrOp }
+!                   { \_ -> NotOp }
 
--- Misc
+-- Symbols
 
-:                   { \_ -> SymColon }
-=                   { \_ -> SymAssign }
-\,                  { \_ -> SymComma }
-\.\.                { \_ -> SymRange }
-\[                  { \_ -> SymLBracket }
-\]                  { \_ -> SymRBracket }
-\(                  { \_ -> SymLParen }
-\)                  { \_ -> SymRParen }
-\{                  { \_ -> SymLCurly }
-\}                  { \_ -> SymRCurly }
+=                   { \_ -> AssignSym }
+\.\.                { \_ -> RangeSym }
+\[                  { \_ -> LBracketSym }
+\]                  { \_ -> RBracketSym }
+\(                  { \_ -> LParenSym }
+\)                  { \_ -> RParenSym }
+\{                  { \_ -> LCurlySym }
+\}                  { \_ -> RCurlySym }
 
 -- Literals
 
-true                { \_ -> LitTrue }
-false               { \_ -> LitFalse }
-$digit+             { \s -> LitInt (read s) }
+true                { \_ -> TrueLit }
+false               { \_ -> FalseLit }
+$digit+             { \s -> IntLit (read s) }
 
 -- Identifier
 
@@ -80,44 +80,42 @@ $alpha $alphanum*   { \s -> Ident s }
 
 {
 
-data Token = KwLet
-    | KwFor
-    | KwIn
-    | KwIf
-    | KwElse
-    | OpRotate
-    | OpScale
-    | OpHJoin
-    | OpVJoin
-    | OpTile
-    | OpPrint
-    | LitTrue
-    | LitFalse
-    | LitInt Int
-    | SymEq
-    | SymNeq
-    | SymGt
-    | SymLt
-    | SymGte
-    | SymLte
-    | SymAdd
-    | SymSub
-    | SymMul
-    | SymDiv
-    | SymMod
-    | SymAnd
-    | SymOr
-    | SymNot
-    | SymColon
-    | SymAssign
-    | SymComma
-    | SymRange
-    | SymLBracket
-    | SymRBracket
-    | SymLParen
-    | SymRParen
-    | SymLCurly
-    | SymRCurly
+data Token = 
+    LetKw
+    | ForKw
+    | InKw
+    | IfKw
+    | ElseKw
+    | PrintFn
+    | TrueLit
+    | FalseLit
+    | IntLit Int
+    | RotateOp
+    | ScaleOp
+    | HJoinOp
+    | VJoinOp
+    | EqOp
+    | NeqOp
+    | GtOp
+    | LtOp
+    | GteOp
+    | LteOp
+    | AddOp
+    | SubOp
+    | MulOp
+    | DivOp
+    | ModOp
+    | AndOp
+    | OrOp
+    | NotOp
+    | AssignSym
+    | RangeSym
+    | LBracketSym
+    | RBracketSym
+    | LParenSym
+    | RParenSym
+    | LCurlySym
+    | RCurlySym
     | Ident String
-    deriving (Show)
+    deriving Show
 }
