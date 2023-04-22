@@ -6,7 +6,7 @@ module Lexer where
 
 $digit = 0-9
 $alpha = [a-zA-Z]
-$alphanum = [$alpha $digit]
+$id = [$alpha \_ $digit]
 
 tokens :-
 
@@ -76,7 +76,7 @@ $digit+             { \s -> IntLit (read s) }
 
 -- Identifier
 
-$alpha $alphanum*   { \s -> Ident s }
+$alpha $id*   { \s -> Ident s }
 
 {
 

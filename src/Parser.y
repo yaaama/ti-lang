@@ -115,16 +115,11 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
     | int                                                       { IntLit $1 }
     | true                                                      { TrueLit }
     | false                                                     { FalseLit }
-    | TileDefinition                                            { $1 }
+    | TileDefinition                                            { TileDef $1 }
 
-TileDefinition : '[' RowDefinitions ']'                         { TileDef $2 }
+TileDefinition : '[' RowDefinitions ']'                         { $2 }
 
-RowDefinitions : RowDefinitions RowDefinition                   { $2 : $1 }
-    | {- empty -}                                               { [] }
-
-RowDefinition : '[' CellDefinitions ']'                         { $2 }
-
-CellDefinitions : CellDefinitions Expression                    { $2 : $1 }
+RowDefinitions : RowDefinitions Expression                      { $2 : $1 }
     | {- empty -}                                               { [] }
 
 {
@@ -160,7 +155,7 @@ data Expr =
     | VJoinOp Expr Expr
     | RotateOp Expr Expr
     | ScaleOp Expr Expr
-    | TileDef [[Expr]]
+    | TileDef [Expr]
     | TrueLit
     | FalseLit
     | Var String
