@@ -29,9 +29,9 @@ print               { \_ -> PrintFn }
 
 -- Tiles
 
-~                   { \_ -> RotateOp }
-**                  { \_ -> ScaleOp }
-++                  { \_ -> HJoinOp }
+\~                  { \_ -> RotateOp }
+\*\*                { \_ -> ScaleOp }
+\+\+                { \_ -> HJoinOp }
 ::                  { \_ -> VJoinOp }
 
 -- Comparisons
@@ -39,9 +39,9 @@ print               { \_ -> PrintFn }
 ==                  { \_ -> EqOp }
 !=                  { \_ -> NeqOp }
 >                   { \_ -> GtOp }
-<                   { \_ -> LtOp }
+\<                  { \_ -> LtOp }
 >=                  { \_ -> GteOp }
-<=                  { \_ -> LteOp }
+\<=                 { \_ -> LteOp }
 
 -- Maths
 
@@ -49,7 +49,7 @@ print               { \_ -> PrintFn }
 \-                  { \_ -> SubOp }
 \*                  { \_ -> MulOp }
 \/                  { \_ -> DivOp }
-%                   { \_ -> ModOp }
+\%                   { \_ -> ModOp }
 
 -- Boolean
 
