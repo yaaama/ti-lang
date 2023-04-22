@@ -1,57 +1,57 @@
 {
 module Parser where
 
-import Lexer
+import qualified Lexer
 }
 
 %name parse
-%tokentype { Token }
+%tokentype { Lexer.Token }
 %error { parseError }
 
 %token
-    let         { LetKw }
-    for         { ForKw }
-    in          { InKw }
-    if          { IfKw }
-    else        { ElseKw }
+    let         { Lexer.LetKw }
+    for         { Lexer.ForKw }
+    in          { Lexer.InKw }
+    if          { Lexer.IfKw }
+    else        { Lexer.ElseKw }
 
-    print       { PrintFn }
+    print       { Lexer.PrintFn }
 
-    '~'         { RotateOp }
-    '**'        { ScaleOp }
-    '++'        { HJoinOp }
-    '::'        { VJoinOp }
+    '~'         { Lexer.RotateOp }
+    '**'        { Lexer.ScaleOp }
+    '++'        { Lexer.HJoinOp }
+    '::'        { Lexer.VJoinOp }
 
-    '=='        { EqOp }
-    '!='        { NeqOp }
-    '>'         { GtOp }
-    '<'         { LtOp }
-    '>='        { GteOp }
-    '<='        { LteOp }
+    '=='        { Lexer.EqOp }
+    '!='        { Lexer.NeqOp }
+    '>'         { Lexer.GtOp }
+    '<'         { Lexer.LtOp }
+    '>='        { Lexer.GteOp }
+    '<='        { Lexer.LteOp }
 
-    '+'         { AddOp }
-    '-'         { SubOp }
-    '*'         { MulOp }
-    '/'         { DivOp }
-    '%'         { ModOp }
+    '+'         { Lexer.AddOp }
+    '-'         { Lexer.SubOp }
+    '*'         { Lexer.MulOp }
+    '/'         { Lexer.DivOp }
+    '%'         { Lexer.ModOp }
 
-    '&&'        { AndOp }
-    '||'        { OrOp }
-    '!'         { NotOp }
+    '&&'        { Lexer.AndOp }
+    '||'        { Lexer.OrOp }
+    '!'         { Lexer.NotOp }
 
-    '='         { AssignSym }
-    '..'        { RangeSym }
-    '['         { LBracketSym }
-    ']'         { RBracketSym }
-    '('         { LParenSym }
-    ')'         { RParenSym }
-    '{'         { LCurlySym }
-    '}'         { RCurlySym }
+    '='         { Lexer.AssignSym }
+    '..'        { Lexer.RangeSym }
+    '['         { Lexer.LBracketSym }
+    ']'         { Lexer.RBracketSym }
+    '('         { Lexer.LParenSym }
+    ')'         { Lexer.RParenSym }
+    '{'         { Lexer.LCurlySym }
+    '}'         { Lexer.RCurlySym }
 
-    true        { TrueLit }
-    false       { FalseLit }
-    $int        { IntLit $$ }
-    $id         { Ident $$ }
+    true        { Lexer.TrueLit }
+    false       { Lexer.FalseLit }
+    int         { Lexer.IntLit $$ }
+    id          { Lexer.Ident $$ }
   
 %%
 
@@ -61,12 +61,12 @@ Program : Program Statement                                     { $2 : $1 }
 Statement : VariableDeclaration                                 { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
-    | print Expression                                          { PrintStmt $1 }                           
+    | print Expression                                          { PrintStmt $2 }                           
     | Expression                                                { Expr $1 }
 
-VariableDeclaration : let $id '=' Expression                    { VarDecl $2 $4 }
+VariableDeclaration : let id '=' Expression                     { VarDecl $2 $4 }
 
-ForLoop : for $id in MathExpression '..' MathExpression Block   { ForLoop $2 $4 $6 $7 }
+ForLoop : for id in MathExpression '..' MathExpression Block    { ForLoop $2 $4 $6 $7 }
 
 IfStatement : if BooleanExpression Block                        { IfStmt $2 $3 }
     | if BooleanExpression Block else Block                     { IfElseStmt $2 $3 $5 }
@@ -86,8 +86,8 @@ MathTerm : MathTerm '*' Factor                                  { MulOp $1 $3 }
     | MathTerm '%' Factor                                       { ModOp $1 $3 }
     | Factor                                                    { $1 }
 
-Factor : $int                                                   { IntLit $1 }
-    | $id                                                       { MathVar $1 }
+Factor : int                                                    { IntLit $1 }
+    | id                                                        { MathVar $1 }
     | '(' MathExpression ')'                                    { $2 }
 
 TileExpression : TileExpression '++' TileTerm                   { HJoinOp $1 $3 }
@@ -99,7 +99,7 @@ TileTerm : TileTerm '~' MathExpression                          { RotateOp $1 $3
     | TileTerm2                                                 { $1 }
 
 TileTerm2 : '[' RowDefinitions ']'                              { TileDef $2 }
-    | $id                                                       { TileVar $1 }
+    | id                                                        { TileVar $1 }
     | '(' TileExpression ')'                                    { $2 }
 
 RowDefinitions : RowDefinitions RowDefinition                   { $2 : $1 }
@@ -110,14 +110,14 @@ RowDefinition : '[' CellDefinitions ']'                         { $2 }
 CellDefinitions : CellDefinitions CellDefinition                { $2 : $1 }
     | {- empty -}                                               { [] }
 
-CellDefinition : $int                                           { CellValue $1 }                                        
+CellDefinition : int                                            { CellValue $1 }                                        
     | TileExpression                                            { CellExpr $1 }
 
 BooleanExpression : BooleanExpression '&&' BooleanTerm          { AndOp $1 $3 }
     | BooleanExpression '||' BooleanTerm                        { OrOp $1 $3 }
     | BooleanTerm                                               { $1 }
 
-BooleanTerm : '!' BooleanTerm2                                  { NotOp $1 }
+BooleanTerm : '!' BooleanTerm2                                  { NotOp $2 }
     | Expression '==' Expression                                { EqOp $1 $3 }
     | Expression '!=' Expression                                { NeqOp $1 $3 }
     | MathExpression '>' MathExpression                         { GtOp $1 $3 }
@@ -128,11 +128,11 @@ BooleanTerm : '!' BooleanTerm2                                  { NotOp $1 }
 
 BooleanTerm2 : true                                             { TrueLit }
     | false                                                     { FalseLit }
-    | $id                                                       { BoolVar $1 }
+    | id                                                        { BoolVar $1 }
     | '(' BooleanExpression ')'                                 { $2 }
 
 {
-parseError :: [Token] -> a
+parseError :: [Lexer.Token] -> a
 parseError _ = error "Parse error"
 
 data Statement = 
@@ -172,7 +172,7 @@ data TileExpr =
 type Matrix = [[CellDef]]
 
 data CellDef = 
-    | CellValue Int
+    CellValue Int
     | CellExpr TileExpr
     deriving Show
 
