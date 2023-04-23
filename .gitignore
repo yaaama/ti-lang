@@ -1,3 +1,8 @@
 .DS_Store
 
 build
+
+# Alex and Happy generated files
+
+Lexer.hs
+Parser.hs
