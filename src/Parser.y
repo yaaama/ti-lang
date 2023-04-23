@@ -74,16 +74,17 @@ import qualified Lexer
 
 %%
 
-Program : Program Statement                                     { $2 : $1 }
+Program : Program Statement                                     { $1 ++ [$2] }
     | {- empty -}                                               { [] }
 
-Statement : VariableDeclaration                                 { $1 }
+Statement : VariableAssignment                                  { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
     | print Expression                                          { PrintStmt $2 }                           
     | Expression                                                { Expr $1 }
 
-VariableDeclaration : let id '=' Expression                     { VarDecl $2 $4 }
+VariableAssignment : let id '=' Expression                      { VarDecl $2 $4 }
+    | id '=' Expression                                         { VarAssign $1 $3 }
 
 ForLoop : for id in Expression '..' Expression Block            { ForLoop $2 $4 $6 $7 }
 
@@ -119,7 +120,7 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
 
 TileDefinition : '[' RowDefinitions ']'                         { $2 }
 
-RowDefinitions : RowDefinitions Expression                      { $2 : $1 }
+RowDefinitions : RowDefinitions Expression                      { $1 ++ [$2] }
     | {- empty -}                                               { [] }
 
 {
@@ -128,6 +129,7 @@ parseError _ = error "Parse error"
 
 data Statement = 
     VarDecl String Expr
+    | VarAssign String Expr
     | ForLoop String Expr Expr [Statement]
     | IfStmt Expr [Statement]
     | IfElseStmt Expr [Statement] [Statement]

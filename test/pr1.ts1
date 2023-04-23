@@ -8,14 +8,14 @@ for i in 0..63 {
 
     for j in 0..63 {
         if (i + j) % 2 == 0 {
-            row ++ black_tile
+            row = row ++ black_tile
         }
         else {
-            row ++ white_tile
+            row = row ++ white_tile
         }
     }
 
-    result_tile :: row
+    result_tile = result_tile :: row
 }
 
 result_tile

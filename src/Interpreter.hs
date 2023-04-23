@@ -2,5 +2,5 @@ module Interpreter where
 
 import Parser
 
-execute :: String -> String
+execute :: [Statement] -> String
 execute = undefined
