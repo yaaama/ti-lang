@@ -1,0 +1,8 @@
+let x = 1
+let y = "hello"
+
+if x == y {
+  print "Type error!"
+} else {
+  print x + 2
+}
