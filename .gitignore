@@ -6,3 +6,4 @@ build
 
 Lexer.hs
 Parser.hs
+/src/Tokens.hs
