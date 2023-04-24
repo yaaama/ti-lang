@@ -1,7 +1,7 @@
 module Interpreter where
 
 import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Parser
 
 type VarMap = Map String VarValue
@@ -19,6 +19,7 @@ execute' (VarDecl id expr) varMap =
   if Map.member id varMap
     then error $ "Identifier " ++ id ++ " has already been defined"
     else Map.insert id (eval expr) varMap
+
 execute' (VarAssign id expr) varMap =
   if Map.notMember id varMap
     then error $ "Identifier " ++ id ++ " is not defined"
