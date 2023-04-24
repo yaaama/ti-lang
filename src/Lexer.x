@@ -117,5 +117,5 @@ data Token =
     | LCurlySym
     | RCurlySym
     | Ident String
-    deriving Show
+    deriving (Show)
 }

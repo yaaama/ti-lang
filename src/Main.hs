@@ -1,13 +1,13 @@
 module Main where
-import System.Environment (getArgs)
-import Parser (parse)
-import Lexer (alexScanTokens)
+
 import Interpreter
+import Lexer (alexScanTokens)
+import Parser (parse)
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
-    args <- getArgs
-    let filePath = head args
-    src <- readFile filePath
-    print $ parse . alexScanTokens $ src
-    
+  args <- getArgs
+  let filePath = head args
+  src <- readFile filePath
+  print $ parse . alexScanTokens $ src

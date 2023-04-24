@@ -74,7 +74,7 @@ import qualified Lexer
 
 %%
 
-Program : Program Statement                                     { $1 ++ [$2] }
+Program : Program Statement                                     { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
     | {- empty -}                                               { [] }
 
 Statement : VariableAssignment                                  { $1 }
@@ -120,7 +120,7 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
 
 TileDefinition : '[' RowDefinitions ']'                         { $2 }
 
-RowDefinitions : RowDefinitions Expression                      { $1 ++ [$2] }
+RowDefinitions : RowDefinitions Expression                      { $2 : $1 }
     | {- empty -}                                               { [] }
 
 {
@@ -135,7 +135,7 @@ data Statement =
     | IfElseStmt Expr [Statement] [Statement]
     | PrintStmt Expr
     | Expr Expr
-    deriving Show
+    deriving (Show)
 
 data Expr = 
      AddOp Expr Expr
@@ -161,5 +161,5 @@ data Expr =
     | TrueLit
     | FalseLit
     | Var String
-    deriving Show
+    deriving (Show)
 }
