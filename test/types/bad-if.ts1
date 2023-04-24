@@ -7,7 +7,3 @@ if x == y {
   print x + 2
 }
 
-for i in [1, 2, 3] {
-  let j = i + 1
-  print j
-}

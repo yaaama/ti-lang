@@ -16,114 +16,22 @@ This language will be a domain specific language specialising in the manipulatio
 ** Language specification in Backus-Naur form
 
 #+begin_src java -n
-<program> ::= {<statement>}
-
-<statement> ::= <comment>
-             | <tile-definition>
-             | <variable-declaration>
-             | <operation>
-             | <iteration>
-             | <print>
-             | <if-statement>
-
-<comment> ::= "//" {<character>}
-
-<tile-definition> ::= "tile" <identifier> <matrix>
-
-<matrix> ::= "[" {<row>} "]"
-
-<row> ::= "[" {<cell-value>} "]"
-
-<cell-value> ::= "0" | "1"
-
-<variable-declaration> ::= "let" <identifier> [":" <tile-type>] "=" <expression>
-
-<tile-type> ::= "Tile" <positive-integer> "x" <positive-integer>
-
-<operation> ::= <rotate>
-             | <hjoin>
-             | <vjoin>
-             | <equality>
-             | <not-equal>
-             | <greater-than>
-             | <less-than>
-             | <greater-than-or-equal-to>
-             | <less-than-or-equal-to>
-             | <add>
-             | <subtract>
-             | <multiply>
-             | <divide>
-             | <modulus>
-             | <and>
-             | <or>
-
-<rotate> ::= "rotate(" <expression> "," <angle> ")"
-
-<angle> ::= "90" | "180" | "270"
-
-<hjoin> ::= "hjoin(" <expression> "," <expression> ")"
-
-<vjoin> ::= "vjoin(" <expression> "," <expression> ")"
-
-<equality> ::= <expression> "==" <expression>
-
-<not-equal> ::= <expression> "!=" <expression>
-
-<greater-than> ::= <expression> ">" <expression>
-
-<less-than> ::= <expression> "<" <expression>
-
-<greater-than-or-equal-to> ::= <expression> ">=" <expression>
-
-<less-than-or-equal-to> ::= <expression> "<=" <expression>
-
-<add> ::= <expression> "+" <expression>
-
-<subtract> ::= <expression> "-" <expression>
-
-<multiply> ::= <expression> "*" <expression>
-
-<divide> ::= <expression> "/" <expression>
-
-<modulus> ::= <expression> "%" <expression>
-
-<and> ::= <expression> "&&" <expression>
-
-<or> ::= <expression> "||" <expression>
-
-<iteration> ::= "for" <identifier> "in" <range> "{" {<statement>} "}"
-
-<range> ::= <positive-integer> ".." <positive-integer>
-
-<print> ::= "print(" <expression> ")"
-
-<if-statement> ::= "if" "(" <expression> ")" "{" {<statement>} "}" ["else" "{" {<statement>} "}"]
-
-<expression> ::= <identifier>
-              | <operation>
-              | <matrix>
-              | <positive-integer>
-              | <true>
-              | <false>
-              | <not>
-
-<identifier> ::= <letter> {<letter> | <digit>}
-
-<letter> ::= "a" | ... | "z" | "A" | ... | "Z"
-
-<digit> ::= "0" | ... | "9"
-
-<positive-integer> ::= <digit> {<digit>}
-
-<true> ::= "true"
-
-<false> ::= "false"
-
-<not> ::= "!" <expression>
+<Program> ::= <Program> <Statement> | ε
+<Statement> ::= <VariableAssignment> | <ForLoop> | <IfStatement> | "print" <Expression> | <Expression>
+<VariableAssignment> ::= "let" <id> "=" <Expression> | <id> "=" <Expression>
+<ForLoop> ::= "for" <id> "in" <Expression> ".." <Expression> <Block>
+<IfStatement> ::= "if" <Expression> <Block> | "if" <Expression> <Block> "else" <Block>
+<Block> ::= "{" <Program> "}"
+<Expression> ::= <Expression> <BinaryOp> <Expression> | <UnaryOp> <Expression> | <Primary>
+<BinaryOp> ::= "&&" | "||" | "==" | "!=" | ">" | "<" | ">=" | "<=" | "+" | "-" | "*" | "/" | "%" | "++" | "::" | "~" | "**"
+<UnaryOp> ::= "!"
+<Primary> ::= <id> | <int> | "true" | "false" | <TileDefinition> | "(" <Expression> ")"
+<TileDefinition> ::= "[" <RowDefinitions> "]"
+<RowDefinitions> ::= <RowDefinitions> <Expression> | ε
 #+end_src
 
 
-** Examples
+** Examples (may be outdated)
 
 
 *** Defining tiles
