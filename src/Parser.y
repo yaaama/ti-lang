@@ -81,13 +81,14 @@ import qualified Lexer
 
 %%
 
-Program : Program Statement                                     { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
+Program : Program StatementOrExpr                                     { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
     | {- empty -}                                               { [] }
 
-Statement : VariableAssignment                                  { $1 }
+StatementOrExpr : VariableAssignment                                  { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
     | output Expression                                         { OutputStmt $2 }                           
+    | Expression                                                { Expr $1 }
 
 VariableAssignment : let id '=' Expression                      { VarDecl $2 $4 }
     | id '=' Expression                                         { VarAssign $1 $3 }

@@ -2,7 +2,8 @@ module Interpreter where
 
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Lexer (alexScanTokens)
+import Debug.Trace
+import Lexer (Token, alexScanTokens)
 import Parser
 
 type VarMap = Map String VarValue
@@ -95,43 +96,21 @@ evalNotOp varm expr =
 runProgram :: String -> VarMap
 runProgram input = execute (parse . alexScanTokens $ input)
 
-testExpr :: String -> VarValue
-testExpr input = evalExpr Map.empty (parseExpr input)
-  where
-    parseExpr :: String -> Expr
-    parseExpr input = case parse . alexScanTokens $ input of
-      [Expr e] -> e
-      _ -> error "Invalid input"
+-- Testing expressions in Ghci
+testEvalExpr :: String -> VarValue
+testEvalExpr input =
+  let tokens = alexScanTokens input
+      expr = case parse tokens of
+        [Expr e] -> e
+        _ -> error $ "Invalid input: " ++ show tokens
+   in evalExpr Map.empty expr
 
--- Testing expressions with this in GHCi
--- evalExpr Map.empty (parseExpr "1 + 2")
+-- Lets you test the lexer
+testLexer :: String -> [Lexer.Token]
+testLexer = alexScanTokens
 
--- let parseExpr input = case parse . alexScanTokens $ input of
---                        [Expr e] -> e
---                        _ -> error "Invalid input"
-
--- Evaluates an integer expression
--- evalInt :: Expr -> Int
---
----- Math operators
----- evalInt (1 + 2) * (2 + 1)
----- evalInt (1 + 2) * evalInt (2 + 1)
----- (evalInt 1 + evalInt 2) * (evalInt 2 + evalInt 1)
----- (1 + 2) * (2 + 1)
----- 3 * 3
----- 9
---
--- evalInt (IntLit val) = val
--- evalInt (AddOp expr1 expr2) = evalInt expr1 + evalInt expr2
--- evalInt (SubOp expr1 expr2) = evalInt expr1 - evalInt expr2
--- evalInt (MulOp expr1 expr2) = evalInt expr1 * evalInt expr2
--- evalInt (DivOp expr1 expr2) = evalInt expr1 `div` evalInt expr2
--- evalInt (ModOp expr1 expr2) = evalInt expr1 `mod` evalInt expr2
---
----- ...
---
--- evalBool :: Expr -> Bool
--- evalBool TrueLit = True
--- evalBool FalseLit = False
--- evalBool (AndOp expr1 expr2) = evalBool expr1 && evalBool expr2
--- evalBool (OrOp expr1 expr2) = evalBool expr1 || evalBool expr2
+-- Testing parser
+testParser :: String -> [Statement]
+testParser input =
+  let tokens = alexScanTokens input
+   in parse tokens
