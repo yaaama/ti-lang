@@ -23,6 +23,29 @@ execute' (VarAssign id expr) varMap =
   if Map.notMember id varMap
     then error $ "Identifier " ++ id ++ " is not defined"
     else Map.insert id (evalExpr varMap expr) varMap
+execute' (IfStmt condExpr trueStmts falseStmts) varMap =
+  executeIf varMap condExpr trueStmts falseStmts
+execute' (ForLoop id startExpr endExpr loopStmts) varMap =
+  executeFor varMap id startExpr endExpr loopStmts
+
+executeIf :: VarMap -> Expr -> [Statement] -> [Statement] -> VarMap
+executeIf varMap condExpr trueStmts falseStmts =
+  case evalExpr varMap condExpr of
+    BoolValue True -> execute (trueStmts ++ [VarAssign "state" (Var "state")])
+    BoolValue False -> execute (falseStmts ++ [VarAssign "state" (Var "state")])
+    _ -> error "If condition should be a boolean expression"
+
+executeFor :: VarMap -> String -> Expr -> Expr -> [Statement] -> VarMap
+executeFor varMap id startExpr endExpr loopStmts =
+  case (evalExpr varMap startExpr, evalExpr varMap endExpr) of
+    (IntValue startVal, IntValue endVal) ->
+      foldr executeLoop varMap [startVal .. endVal]
+    _ -> error "For loop start and end should be integers"
+  where
+    executeLoop iterVal varMap =
+      let varMapWithIter = Map.insert id (IntValue iterVal) varMap
+          updatedVarMap = execute (loopStmts ++ [VarAssign "state" (Var "state")])
+       in Map.delete id updatedVarMap
 
 -- Will check for variable binding
 lookupVar :: VarMap -> String -> VarValue
@@ -114,3 +137,13 @@ testParser :: String -> [Statement]
 testParser input =
   let tokens = alexScanTokens input
    in parse tokens
+
+main :: IO ()
+main = do
+  let program =
+        unlines
+          [ "let sum = 0",
+            "",
+            " sum = sum + 1"
+          ]
+  print $ runProgram program

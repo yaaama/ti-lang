@@ -16,6 +16,7 @@ import qualified Lexer
     else        { Lexer.ElseKw }
     output      { Lexer.OutputKw }
 
+
     -- Tile operators
 
     '~'         { Lexer.RotateOp }
