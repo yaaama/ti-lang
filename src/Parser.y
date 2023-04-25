@@ -16,10 +16,14 @@ import qualified Lexer
     else        { Lexer.ElseKw }
     output      { Lexer.OutputKw }
 
+    -- Tile operators
+
     '~'         { Lexer.RotateOp }
     '**'        { Lexer.ScaleOp }
     '++'        { Lexer.HJoinOp }
     '::'        { Lexer.VJoinOp }
+
+    -- Comparison operators
 
     '=='        { Lexer.EqOp }
     '!='        { Lexer.NeqOp }
@@ -28,12 +32,16 @@ import qualified Lexer
     '>='        { Lexer.GteOp }
     '<='        { Lexer.LteOp }
 
+    -- Math operators
+
     '+'         { Lexer.AddOp }
     '-'         { Lexer.SubOp }
     '*'         { Lexer.MulOp }
     '/'         { Lexer.DivOp }
     '%'         { Lexer.ModOp }
 
+    -- Boolean operators
+    
     '&&'        { Lexer.AndOp }
     '||'        { Lexer.OrOp }
     '!'         { Lexer.NotOp }
