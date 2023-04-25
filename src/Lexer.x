@@ -20,10 +20,7 @@ for                 { \_ -> ForKw }
 in                  { \_ -> InKw }
 if                  { \_ -> IfKw }
 else                { \_ -> ElseKw }
-
--- Built in functions
-
-print               { \_ -> PrintFn }
+output              { \_ -> OutputKw }
 
 -- Ops
 
@@ -86,7 +83,7 @@ data Token =
     | InKw
     | IfKw
     | ElseKw
-    | PrintFn
+    | OutputKw
     | TrueLit
     | FalseLit
     | IntLit Int

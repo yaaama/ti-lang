@@ -14,8 +14,7 @@ import qualified Lexer
     in          { Lexer.InKw }
     if          { Lexer.IfKw }
     else        { Lexer.ElseKw }
-
-    print       { Lexer.PrintFn }
+    output      { Lexer.OutputKw }
 
     '~'         { Lexer.RotateOp }
     '**'        { Lexer.ScaleOp }
@@ -80,16 +79,15 @@ Program : Program Statement                                     { $2 : $1 }     
 Statement : VariableAssignment                                  { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
-    | print Expression                                          { PrintStmt $2 }                           
-    | Expression                                                { Expr $1 }
+    | output Expression                                         { OutputStmt $2 }                           
 
 VariableAssignment : let id '=' Expression                      { VarDecl $2 $4 }
     | id '=' Expression                                         { VarAssign $1 $3 }
 
 ForLoop : for id in Expression '..' Expression Block            { ForLoop $2 $4 $6 $7 }
 
-IfStatement : if Expression Block                               { IfStmt $2 $3 }
-    | if Expression Block else Block                            { IfElseStmt $2 $3 $5 }
+IfStatement : if Expression Block                               { IfStmt $2 $3 [] }
+    | if Expression Block else Block                            { IfStmt $2 $3 $5 }
 
 Block : '{' Program '}'                                         { $2 }
 
@@ -131,9 +129,8 @@ data Statement =
     VarDecl String Expr
     | VarAssign String Expr
     | ForLoop String Expr Expr [Statement]
-    | IfStmt Expr [Statement]
-    | IfElseStmt Expr [Statement] [Statement]
-    | PrintStmt Expr
+    | IfStmt Expr [Statement] [Statement]
+    | OutputStmt Expr
     | Expr Expr
     deriving (Show)
 
