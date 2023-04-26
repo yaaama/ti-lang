@@ -1,0 +1,45 @@
+let tile1 = [  [0, 0, 0, 1],
+  [0, 0, 1, 1],
+  [0, 1, 1, 1],
+  [1, 1, 1, 1]
+];
+let finalPattern = [];
+
+// Iterate through the final pattern's rows
+for (let row = 0; row < 24; row++) {
+  finalPattern[row] = [];
+  // Iterate through the final pattern's columns
+  for (let col = 0; col < 24; col++) {
+    let baseRow = row % 8;
+    let baseCol = col % 8;
+
+    if (row >= 8 && row < 16 && col >= 8 && col < 16) {
+      // Scaled base square (3 times the size)
+      baseRow = Math.floor(baseRow / 3);
+      baseCol = Math.floor(baseCol / 3);
+    } else {
+      // Rotate the tile
+      if (col >= 4 && row >= 4) {
+        let tmp = baseRow;
+        baseRow = 3 - baseCol;
+        baseCol = tmp;
+      } else if (col >= 4) {
+        let tmp = baseRow;
+        baseRow = baseCol;
+        baseCol = 3 - tmp;
+      } else if (row >= 4) {
+        let tmp = baseRow;
+        baseRow = baseCol;
+        baseCol = tmp;
+        tmp = baseRow;
+        baseRow = 3 - baseCol;
+        baseCol = tmp;
+      }
+    }
+
+    finalPattern[row][col] = tile1[baseRow][baseCol];
+  }
+}
+
+// Print the final pattern
+print(finalPattern);

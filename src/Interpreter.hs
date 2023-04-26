@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Interpreter where
 
 import Data.Map (Map)
@@ -8,7 +10,7 @@ import Parser
 
 type VarMap = Map String VarValue
 
-data VarValue = IntValue Int | BoolValue Bool | TileValue -- need a data type here
+data VarValue = IntValue Int | BoolValue Bool | TileValue [[Int]] | ListValue [VarValue]
   deriving (Show, Eq)
 
 execute :: [Statement] -> VarMap
@@ -47,6 +49,16 @@ executeFor varMap id startExpr endExpr loopStmts =
           updatedVarMap = execute (loopStmts ++ [VarAssign "state" (Var "state")])
        in Map.delete id updatedVarMap
 
+evalTileDef :: VarMap -> [Expr] -> VarValue
+evalTileDef varm rowExprs =
+  TileValue $
+    map
+      ( \rowExpr -> case evalExpr varm rowExpr of
+          ListValue list -> map (\case IntValue n -> n; _ -> error "Tile definition should only contain integer values.") list
+          _ -> error "Tile definition should be a list of lists of integers."
+      )
+      rowExprs
+
 -- Will check for variable binding
 lookupVar :: VarMap -> String -> VarValue
 lookupVar var x = case Map.lookup x var of
@@ -77,6 +89,38 @@ evalExpr varm (GtOp expr1 expr2) = evalGtOp varm expr1 expr2
 evalExpr varm (LtOp expr1 expr2) = evalLtOp varm expr1 expr2
 evalExpr varm (GteOp expr1 expr2) = evalGteOp varm expr1 expr2
 evalExpr varm (LteOp expr1 expr2) = evalLteOp varm expr1 expr2
+-- Tiles
+evalExpr varm (TileDef rowExprs) = evalTileDef varm rowExprs
+-- Why does RotateOP need two expressions? The below implementation only takes one.
+-- evalExpr varm (RotateOp expr) =
+--  case evalExpr varm expr of
+--    TileValue tile -> TileValue (rotateTile 1 tile)
+--    _ -> error "Operand should be a tile for the 'rotate' operator"
+
+evalExpr varm (ScaleOp scaleExpr expr) =
+  case (evalExpr varm scaleExpr, evalExpr varm expr) of
+    (IntValue n, TileValue tile) -> TileValue (scaleTile n tile)
+    _ -> error "Invalid operands for the 'scale' operator"
+evalExpr varm (HJoinOp expr1 expr2) =
+  case (evalExpr varm expr1, evalExpr varm expr2) of
+    (TileValue tile1, TileValue tile2) -> TileValue (hJoinTiles tile1 tile2)
+    _ -> error "Both operands should be tiles for the '++' operator"
+evalExpr varm (VJoinOp expr1 expr2) =
+  case (evalExpr varm expr1, evalExpr varm expr2) of
+    (TileValue tile1, TileValue tile2) -> TileValue (vJoinTiles tile1 tile2)
+    _ -> error "Both operands should be tiles for the '::' operator"
+
+scaleTile :: Int -> [[Int]] -> [[Int]]
+scaleTile n tile =
+  concatMap (replicate n) $ map (concatMap (replicate n)) tile
+
+hJoinTiles :: [[Int]] -> [[Int]] -> [[Int]]
+hJoinTiles tile1 tile2
+  | length tile1 == length tile2 = zipWith (++) tile1 tile2
+  | otherwise = error "Tiles must have the same height for horizontal join"
+
+vJoinTiles :: [[Int]] -> [[Int]] -> [[Int]]
+vJoinTiles tile1 tile2 = tile1 ++ tile2
 
 -- Functions to evaluate the comparison operators
 evalEqOp, evalNeqOp, evalGtOp, evalLtOp, evalGteOp, evalLteOp :: VarMap -> Expr -> Expr -> VarValue
@@ -143,7 +187,9 @@ main = do
   let program =
         unlines
           [ "let sum = 0",
-            "",
-            " sum = sum + 1"
+            "if sum != 100 {",
+            "sum = 100}",
+            "else {",
+            "sum = sum + 1}"
           ]
   print $ runProgram program
