@@ -1,91 +1,193 @@
 module TypeChecker where
 
+import Control.Monad (when, foldM, unless)
+import Control.Monad.Trans.Writer (Writer, tell, runWriter)
+
 import Parser
 
 type TypeEnv = [(String, VarType)]
-data VarType = IntType | TileType | BoolType deriving (Eq)
-
-type CheckerErrors = [String]
-type CheckerState = (TypeEnv, CheckerErrors)
+data VarType = IntType | TileType | BoolType | Undefined deriving (Eq)
 
 unparseType :: VarType -> String
 unparseType IntType = "Int"
 unparseType TileType = "Tile"
 unparseType BoolType = "Bool"
 
-getBinding :: String -> TypeEnv -> Maybe VarType
-getBinding id [] = Nothing
-getBinding id ((x, t) : env) = if id == x then Just t else getBinding id env
 
-verify :: [Statement] -> CheckerErrors
-verify stmts = err ++ tErrs
-    where
-        verifyOutputStmtPosn stmts 
-            | null stmts = []
-            | length (filter isOutputStmt stmts) /= 1 = ["Program must contain exactly one output statement"]
-            | not . isOutputStmt . last $ stmts = ["Program must have its last statement as an output statement"]
-            | otherwise = []
-            where 
-                isOutputStmt (OutputStmt _) = True
-                isOutputStmt _ = False
+verify :: [Statement] -> [String]
+verify stmts = errs where (_, errs) = runWriter (verifyBlock [] stmts)
 
-        err = verifyOutputStmtPosn stmts 
-        (_, tErrs) = verifyBlock ([], []) stmts
+verifyBlock :: TypeEnv -> [Statement] -> Writer [String] TypeEnv
+verifyBlock env = foldr (
+    \stmt acc -> do
+        env <- acc
+        verifyStmt env stmt) $ return env
 
--- TODO: This is very messy and impartial. Needed to use Write monad to reduce the complexity
--- Need to implement expression typing too
+getBinding :: TypeEnv -> String -> Writer [String] VarType
+getBinding [] id = do
+    tell ["Variable " ++ id ++ " has not been declared"]
+    return Undefined
+getBinding ((x, t) : env) id = if id == x then return t else getBinding env id
 
-verifyBlock :: CheckerState -> [Statement] -> CheckerState
-verifyBlock = foldr $ flip verifyStmt
+addBinding :: TypeEnv -> (String, VarType) -> Writer [String] TypeEnv
+addBinding env (id, t) = if isDeclared env id 
+    then do
+        tell ["Variable " ++ id ++ " has already been declared"]
+        return env
+    else return ((id, t) : env)
+    where 
+        isDeclared :: TypeEnv -> String -> Bool
+        isDeclared [] id = False
+        isDeclared ((x, _):xs) id = (x == id) || isDeclared xs id
 
-verifyStmt :: CheckerState -> Statement -> CheckerState
+verifyStmt :: TypeEnv -> Statement -> Writer [String] TypeEnv
 
-verifyStmt state@(env, errs) (VarDecl id expr) = case getBinding id env of
-    Just _ -> (env, ("Variable " ++ id ++ " has already been declared") : errs)
-    Nothing -> 
-        case typeof state expr of
-            Left errs2 -> (env, errs2)
-            Right t -> ((id, t) : env, errs)
+verifyStmt env (VarDecl id expr) = do
+    t <- typeof env expr
+    addBinding env (id, t)
 
-verifyStmt state@(env, errs) (VarAssign id expr) = case getBinding id env of
-    Nothing -> (env, ("Variable " ++ id ++ " has not been declared") : errs)
-    Just t -> 
-        case typeof state expr of
-            Left errs2 -> (env, errs2)
-            Right t2 
-                | t2 == t -> state
-                | otherwise -> (env, ("Incompatible type " ++ unparseType t2 ++ " assigned to variable " ++ id) : errs)  
+verifyStmt env (VarAssign id expr) = do
+    t <- getBinding env id
+    t2 <- typeof env expr
+    when (t /= Undefined && t /= t2) $ tell ["Incompatible type " ++ unparseType t2 ++ " assigned to variable " ++ id]
+    return env
 
-verifyStmt state@(env, errs) (ForLoop id expr1 expr2 stmts) = case typeof state expr1 of
-    Left errs2 -> (env, errs2)
-    Right t1 
-        | t1 /= IntType -> (env, ("Expression that defines range start must evaluate to type " ++ unparseType IntType) : errs)
-        | otherwise -> 
-            case typeof state expr2 of 
-                Left errs3 -> (env, errs3)
-                Right t2
-                    | t2 /= IntType -> (env, ("Expression that defines range end must evaluate to type " ++ unparseType IntType) : errs)
-                    | otherwise -> 
-                        case getBinding id env of
-                            Just _ -> (env, ("Variable " ++ id ++ " has already been declared") : errs)
-                            Nothing -> state
-                        where 
-                            (_, errs) = verifyBlock ((id, IntType) : env, errs) stmts
+verifyStmt env (ForLoop id expr1 expr2 stmts) = do
+    t1 <- typeof env expr1
+    t2 <- typeof env expr2
 
-verifyStmt state@(env, errs) (IfStmt expr stmts1 stmts2) = case typeof state expr of
-    Left errs2 -> (env, errs2)
-    Right t1 
-        | t1 /= BoolType -> (env, ("Condition must evaluate to type " ++ unparseType BoolType) : errs)
-        | otherwise -> (env, errs1 ++ errs2)
-        where
-            (_, errs1) = verifyBlock state stmts1
-            (_, errs2) = verifyBlock state stmts2
+    when (t1 /= IntType) $
+        tell ["Expression that define range start must evaluate to type " ++ unparseType IntType]
 
-verifyStmt state@(env, errs) (OutputStmt expr) = case typeof state expr of
-    Left errs2 -> (env, errs2)
-    Right t1 
-        | t1 /= TileType -> (env, ("Program must output an expression that evaluate to type " ++ unparseType TileType) : errs)
-        | otherwise -> state
+    when (t2 /= IntType) $
+        tell ["Expression that define range end must evaluate to type " ++ unparseType IntType]
 
-typeof :: CheckerState -> Expr -> Either CheckerErrors VarType
-typeof state@(env, errs) (AddOp expr1 expr2) = undefined
+    env2 <- addBinding env (id, IntType)
+    verifyBlock env2 stmts
+    return env
+
+verifyStmt env (IfStmt expr stmts1 stmts2) = do
+    t <- typeof env expr
+    when (t /= BoolType) $ tell ["Condition must evaluate to type " ++ unparseType BoolType]
+    verifyBlock env stmts1
+    verifyBlock env stmts2
+    return env
+
+verifyStmt env (OutputStmt expr) = do
+    t <- typeof env expr
+    when (t /= TileType) $ tell ["Program must output an expression that evaluate to type " ++ unparseType TileType]
+    return env
+
+
+typeof :: TypeEnv -> Expr -> Writer [String] VarType
+
+typeof env (Var id) = getBinding env id
+typeof env (IntLit _) = return IntType
+typeof env TrueLit = return BoolType
+typeof env FalseLit = return BoolType
+typeof env (TileDef exprs) = do
+    ts <- mapM (typeof env) exprs    
+    let valid = foldr (\t acc -> (t == IntType || t == TileType) && acc) True ts
+    unless valid $ 
+        tell ["Tile definition must involve expressions that evaluate either to type " ++ unparseType IntType ++ " or " ++ unparseType TileType]
+
+    return TileType
+
+typeof env (AddOp expr1 expr2) = do 
+    assertOperands env "+" ((expr1, IntType), (expr2, IntType))
+    return IntType
+
+typeof env (SubOp expr1 expr2) = do
+    assertOperands env "-" ((expr1, IntType), (expr2, IntType))
+    return IntType
+
+typeof env (MulOp expr1 expr2) = do
+    assertOperands env "*" ((expr1, IntType), (expr2, IntType))
+    return IntType
+
+typeof env (DivOp expr1 expr2) = do 
+    assertOperands env "/" ((expr1, IntType), (expr2, IntType))
+    return IntType
+
+typeof env (ModOp expr1 expr2) = do
+    assertOperands env "%" ((expr1, IntType), (expr2, IntType))
+    return IntType
+
+typeof env (AndOp expr1 expr2) = do
+    assertOperands env "&&" ((expr1, BoolType), (expr2, BoolType))
+    return BoolType
+
+typeof env (OrOp expr1 expr2) = do
+    assertOperands env "||" ((expr1, BoolType), (expr2, BoolType))
+    return BoolType
+
+typeof env (NotOp expr) = do
+    t <- typeof env expr
+
+    when (t /= BoolType) $
+        tell ["'!' operator must be followed by an expression that evaluates to type " ++ unparseType BoolType]
+    
+    return BoolType
+
+typeof env (GtOp expr1 expr2) = do
+    assertOperands env ">" ((expr1, IntType), (expr2, IntType))
+    return BoolType
+
+typeof env (LtOp expr1 expr2) = do
+    assertOperands env "<" ((expr1, IntType), (expr2, IntType))
+    return BoolType
+
+typeof env (GteOp expr1 expr2) = do
+    assertOperands env ">=" ((expr1, IntType), (expr2, IntType))
+    return BoolType
+
+typeof env (LteOp expr1 expr2) = do
+    assertOperands env "<=" ((expr1, IntType), (expr2, IntType))
+    return BoolType
+
+typeof env (EqOp expr1 expr2) = do
+    t1 <- typeof env expr1
+    t2 <- typeof env expr2
+
+    when (t1 /= t2) $
+        tell ["LHS expression and RHS expression of the '==' operator must both evaluate to the same type"]
+    
+    return BoolType
+
+typeof env (NeqOp expr1 expr2) = do
+    t1 <- typeof env expr1
+    t2 <- typeof env expr2
+
+    when (t1 /= t2) $
+        tell ["LHS expression and RHS expression of the '!=' operator must both evaluate to the same type"]
+    
+    return BoolType
+
+typeof env (HJoinOp expr1 expr2) = do
+    assertOperands env "++" ((expr1, TileType), (expr2, TileType))
+    return TileType
+
+typeof env (VJoinOp expr1 expr2) = do
+    assertOperands env "::" ((expr1, TileType), (expr2, TileType))
+    return TileType
+
+typeof env (RotateOp expr1 expr2) = do
+    assertOperands env "~" ((expr1, TileType), (expr2, IntType))
+    return TileType
+
+typeof env (ScaleOp expr1 expr2) = do
+    assertOperands env "**" ((expr1, TileType), (expr2, IntType))
+    return TileType
+
+assertOperands :: TypeEnv -> String -> ((Expr, VarType), (Expr, VarType)) -> Writer [String] ()
+assertOperands env sign ((expr1, lt), (expr2, rt))  = do
+    t1 <- typeof env expr1
+    t2 <- typeof env expr2
+
+    when (t1 /= lt) $
+        tell ["LHS expression of the '" ++ sign ++ "' operator must evaluate to type " ++ unparseType lt]
+
+    when (t2 /= rt) $
+        tell ["RHS expresion of the '" ++ sign ++ "' operator must evaludate to type " ++ unparseType rt]
+
+    
