@@ -1,4 +1,0 @@
-for i in [true, true, true] {
-  let j = i + 1
-  print j
-}

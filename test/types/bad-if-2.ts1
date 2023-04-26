@@ -1,8 +1,4 @@
 let x = 1
-let y = "hello"
+let y = []
 
-if x == y {
-  print "Type error!"
-} else {
-  print x + 2
-}
+if x > y {} else {}

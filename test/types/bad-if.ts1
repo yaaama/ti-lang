@@ -1,9 +1,5 @@
 let x = 1
 let y = true
 
-if x == y {
-  print "Type error!"
-} else {
-  print x + 2
-}
+if x == y {} else {}
 

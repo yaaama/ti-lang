@@ -1,5 +1,0 @@
-let x = [1, true, "hello"]
-
-for i in x {
-  print i
-}
