@@ -1,5 +1,5 @@
-let black_tile = [ [ 1 ] ]
-let white_tile = [ [ 0 ] ]
+import "tile1" as tile1
+import "tile2" as tile2
 
 let result_tile = []
 
@@ -8,10 +8,10 @@ for i in 0..63 {
 
     for j in 0..63 {
         if (i + j) % 2 == 0 {
-            row = row ++ black_tile
+            row = row ++ tile1
         }
         else {
-            row = row ++ white_tile
+            row = row ++ tile2
         }
     }
 

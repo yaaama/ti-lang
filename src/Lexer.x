@@ -21,6 +21,8 @@ in                  { \_ -> InKw }
 if                  { \_ -> IfKw }
 else                { \_ -> ElseKw }
 output              { \_ -> OutputKw }
+import              { \_ -> ImportKw }
+as                  { \_ -> AsKw }
 
 -- Ops
 
@@ -58,6 +60,7 @@ output              { \_ -> OutputKw }
 
 =                   { \_ -> AssignSym }
 \.\.                { \_ -> RangeSym }
+\"                  { \_ -> QuoteSym }
 \[                  { \_ -> LBracketSym }
 \]                  { \_ -> RBracketSym }
 \(                  { \_ -> LParenSym }
@@ -84,6 +87,8 @@ data Token =
     | IfKw
     | ElseKw
     | OutputKw
+    | ImportKw
+    | AsKw
     | TrueLit
     | FalseLit
     | IntLit Int
@@ -107,6 +112,7 @@ data Token =
     | NotOp
     | AssignSym
     | RangeSym
+    | QuoteSym
     | LBracketSym
     | RBracketSym
     | LParenSym

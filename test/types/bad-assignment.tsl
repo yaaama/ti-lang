@@ -1,0 +1,3 @@
+import "tile1" as input_tile
+
+input_tile = 1

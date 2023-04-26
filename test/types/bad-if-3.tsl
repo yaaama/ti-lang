@@ -1,0 +1,3 @@
+import "input1" as input_tile
+
+if input_tile == 1 {} else {}

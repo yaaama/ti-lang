@@ -15,6 +15,8 @@ import qualified Lexer
     if          { Lexer.IfKw }
     else        { Lexer.ElseKw }
     output      { Lexer.OutputKw }
+    import      { Lexer.ImportKw }
+    as          { Lexer.AsKw }
 
 
     -- Tile operators
@@ -48,6 +50,7 @@ import qualified Lexer
     '!'         { Lexer.NotOp }
 
     '='         { Lexer.AssignSym }
+    '"'         { Lexer.QuoteSym }
     '..'        { Lexer.RangeSym }
     '['         { Lexer.LBracketSym }
     ']'         { Lexer.RBracketSym }
@@ -82,14 +85,19 @@ import qualified Lexer
 
 %%
 
-Program : Program StatementOrExpr                                     { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
+Program : Program StatementOrExpr                               { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
     | {- empty -}                                               { [] }
 
-StatementOrExpr : VariableAssignment                                  { $1 }
+StatementOrExpr : VariableAssignment                            { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
-    | output Expression                                         { OutputStmt $2 }                           
+    | ImportStatement                                           { $1 }
+    | OutputStatement                                           { $1 }                         
     | Expression                                                { Expr $1 }
+
+OutputStatement : output Expression                             { OutputStmt $2 }
+
+ImportStatement : import '"' id '"' as id                       { ImportStmt $3 $6 }
 
 VariableAssignment : let id '=' Expression                      { VarDecl $2 $4 }
     | id '=' Expression                                         { VarAssign $1 $3 }
@@ -141,6 +149,7 @@ data Statement =
     | ForLoop String Expr Expr [Statement]
     | IfStmt Expr [Statement] [Statement]
     | OutputStmt Expr
+    | ImportStmt String String
     | Expr Expr
     deriving (Show)
 

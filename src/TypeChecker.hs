@@ -13,7 +13,6 @@ unparseType IntType = "Int"
 unparseType TileType = "Tile"
 unparseType BoolType = "Bool"
 
-
 verify :: [Statement] -> [String]
 verify stmts = errs where (_, errs) = runWriter (verifyBlock [] stmts)
 
@@ -78,6 +77,7 @@ verifyStmt env (OutputStmt expr) = do
     when (t /= TileType) $ tell ["Program must output an expression that evaluate to type " ++ unparseType TileType]
     return env
 
+verifyStmt env (ImportStmt file id) = addBinding env (id, TileType)
 
 typeof :: TypeEnv -> Expr -> Writer [String] VarType
 
@@ -189,5 +189,3 @@ assertOperands env sign ((expr1, lt), (expr2, rt))  = do
 
     when (t2 /= rt) $
         tell ["RHS expresion of the '" ++ sign ++ "' operator must evaludate to type " ++ unparseType rt]
-
-    
