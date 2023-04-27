@@ -1,4 +1,4 @@
-module Interpreter where
+module Tsl where
 
 import Control.Monad (mapM_, when)
 import Data.Bifunctor (Bifunctor(second))
