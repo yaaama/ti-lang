@@ -173,6 +173,9 @@ eval env (ScaleOp expr1 expr2) =
         tile = evalTile env expr1
         factor = evalInt env expr2
 
+eval env (HReflectOp expr) = TileValue $ map reverse tile where tile = evalTile env expr
+eval env (VReflectOp expr) = TileValue $ reverse tile where tile = evalTile env expr
+eval env (BlankOp expr) = TileValue $ map (map (const 0)) tile where tile = evalTile env expr
 
 evalInt :: Environment -> Expr -> Int
 evalInt env expr = x where (IntValue x) = eval env expr

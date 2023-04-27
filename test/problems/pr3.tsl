@@ -1,43 +1,22 @@
 import "tile1" as tile1
 
-let base_tile = []
+let blank = # tile1
+let base_tile = (tile1 ++ <> tile1 ++ blank) :: (blank ++ ^^ tile1 ++ <> (^^ tile1))
+
 let result_tile = []
 
-let blank = []
-blank = # tile1
-
-let tile1y = []
-tile1y = ^^ tile1
-
-let tile1x = []
-tile1x = <> tile1
-
-let tile1xy = []
-tile1xy = <> tile1y
-
-let row1 = []
-row1 = row1 ++ tile1
-row1 = row1 ++ tile1y
-row1 = row1 ++ blank
-
-let row2 = []
-row2 = row2 ++ blank
-row2 = row2 ++ tilex
-row2 = row2 ++ tile1xy
-
-base_tile = base_tile :: row1
-base_tile = base_tile :: row2
-
-let base_reflect = []
-base_reflect = <> base_tile
-
-let row = []
-for i in 0..9 {
-    row = row ++ base_tile
-    row = row ++ base_reflect
-}
-
 for i in 0..29 {
+    let row = []
+
+    for j in 0..9 {
+        if j % 2 == 0 {
+            row = row ++ base_tile
+        }
+        else {
+            row = row ++ ^^base_tile
+        }
+    }
+
     result_tile = result_tile :: row
 }
 

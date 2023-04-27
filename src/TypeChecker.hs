@@ -113,11 +113,7 @@ typeof env (OrOp expr1 expr2) = do
     return BoolType
 
 typeof env (NotOp expr) = do
-    t <- typeof env expr
-
-    when (t /= BoolType) $
-        tell ["'!' operator must be followed by an expression that evaluates to type " ++ unparseType BoolType]
-    
+    assertSingleOperand env "!" (expr, BoolType)
     return BoolType
 
 typeof env (GtOp expr1 expr2) = do
@@ -170,6 +166,18 @@ typeof env (ScaleOp expr1 expr2) = do
     assertOperands env "**" ((expr1, TileType), (expr2, IntType))
     return TileType
 
+typeof env (HReflectOp expr) = do
+    assertSingleOperand env "<>" (expr, TileType)
+    return TileType
+
+typeof env (VReflectOp expr) = do
+    assertSingleOperand env "^^" (expr, TileType)
+    return TileType
+
+typeof env (BlankOp expr) = do
+    assertSingleOperand env "#" (expr, TileType)
+    return TileType
+
 assertOperands :: TypeEnv -> String -> ((Expr, VarType), (Expr, VarType)) -> Writer [String] ()
 assertOperands env sign ((expr1, lt), (expr2, rt))  = do
     t1 <- typeof env expr1
@@ -179,4 +187,11 @@ assertOperands env sign ((expr1, lt), (expr2, rt))  = do
         tell ["LHS expression of the '" ++ sign ++ "' operator must evaluate to type " ++ unparseType lt]
 
     when (t2 /= rt) $
-        tell ["RHS expresion of the '" ++ sign ++ "' operator must evaludate to type " ++ unparseType rt]
+        tell ["RHS expresion of the '" ++ sign ++ "' operator must evaluate to type " ++ unparseType rt]
+
+assertSingleOperand :: TypeEnv -> String -> (Expr, VarType) -> Writer [String] ()
+assertSingleOperand env sign (expr, t) = do
+    t1 <- typeof env expr
+
+    when (t1 /= t) $
+        tell ["'" ++ sign ++ "' operator must be followed by an expression that evaluates to type " ++ unparseType t]
