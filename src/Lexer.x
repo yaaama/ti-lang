@@ -37,7 +37,8 @@ as                  { \_ -> AsKw }
 \#                  { \_ -> BlankOp }
 &                   { \_ -> TileAndOp }
 \|                  { \_ -> TileOrOp }
-\?                   { \_ -> TileNotOp }
+\?                  { \_ -> TileNotOp }
+\@                  { \_ -> SnipOp }
 
 -- Comparisons
 
@@ -54,7 +55,7 @@ as                  { \_ -> AsKw }
 \-                  { \_ -> SubOp }
 \*                  { \_ -> MulOp }
 \/                  { \_ -> DivOp }
-\%                   { \_ -> ModOp }
+\%                  { \_ -> ModOp }
 
 -- Boolean
 
@@ -73,6 +74,7 @@ as                  { \_ -> AsKw }
 \)                  { \_ -> RParenSym }
 \{                  { \_ -> LCurlySym }
 \}                  { \_ -> RCurlySym }
+\,                  { \_ -> CommaSym }
 
 -- Literals
 
@@ -108,6 +110,7 @@ data Token =
     | TileAndOp
     | TileNotOp
     | TileOrOp
+    | SnipOp
     | EqOp
     | NeqOp
     | GtOp
@@ -131,6 +134,7 @@ data Token =
     | RParenSym
     | LCurlySym
     | RCurlySym
+    | CommaSym
     | Ident String
     deriving (Show)
 }

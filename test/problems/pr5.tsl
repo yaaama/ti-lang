@@ -1,13 +1,10 @@
 import "tile1" as tile1
 
-let subtile1 = []
-let subtile2 = []
-let subtile3 = []
 let result_tile = []
 
-subtile1 = take 0 0 6 tile1
-subtile2 = take 2 2 6 tile1
-subtile3 = take 4 4 6 tile1
+let subtile1 = tile1 @ (0, 0, 6)
+let subtile2 = tile1 @ (2, 2, 6)
+let subtile3 = tile1 @ (4, 4, 6)
 
 let row1 = []
 let row2 = []
@@ -19,8 +16,4 @@ for i in 0..2 {
     row3 = row3 ++ subtile3
 }
 
-result_tile = result_tile :: row1
-result_tile = result_tile :: row2
-result_tile = result_tile :: row3
-
-output result_tile
+output row1 :: row2 :: row3

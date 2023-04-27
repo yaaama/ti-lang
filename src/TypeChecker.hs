@@ -190,6 +190,26 @@ typeof env (TileNotOp expr) = do
     assertSingleOperand env "?" (expr, TileType)
     return TileType
 
+typeof env (SnipOp expr1 expr2 expr3 expr4) = do
+    t1 <- typeof env expr1
+    t2 <- typeof env expr2
+    t3 <- typeof env expr3
+    t4 <- typeof env expr4
+
+    when (t1 /= TileType) $
+        tell ["LHS expression of the '@' operator must evaluate to type " ++ unparseType TileType]
+
+    when (t2 /= IntType) $
+        tell ["Snip start col must be an expression that evaluate to type " ++ unparseType IntType]
+
+    when (t3 /= IntType) $
+        tell ["Snip start row must be an expression that evaluate to type " ++ unparseType IntType]
+
+    when (t4 /= IntType) $
+        tell ["Snip size must be an expression that evaluate to type " ++ unparseType IntType]
+
+    return TileType
+
 assertOperands :: TypeEnv -> String -> ((Expr, VarType), (Expr, VarType)) -> Writer [String] ()
 assertOperands env sign ((expr1, lt), (expr2, rt))  = do
     t1 <- typeof env expr1

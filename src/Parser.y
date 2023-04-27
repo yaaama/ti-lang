@@ -31,6 +31,7 @@ import qualified Lexer
     '&'         { Lexer.TileAndOp }
     '|'         { Lexer.TileOrOp }
     '?'         { Lexer.TileNotOp }
+    '@'         { Lexer.SnipOp }
 
     -- Comparison operators
 
@@ -64,6 +65,7 @@ import qualified Lexer
     ')'         { Lexer.RParenSym }
     '{'         { Lexer.LCurlySym }
     '}'         { Lexer.RCurlySym }
+    ','         { Lexer.CommaSym }
 
     true        { Lexer.TrueLit }
     false       { Lexer.FalseLit }
@@ -87,74 +89,76 @@ import qualified Lexer
 %left '*' '/' '%'
 %left '++' '::' '&' '|'
 %left '~' '**'
-%right '<>' '^^' '#' '?'
+%right '<>' '^^' '#' '?' 
+%nonassoc '@'
 %right '!'
 
 %%
 
-Program : Program StatementOrExpr                               { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
-    | {- empty -}                                               { [] }
+Program : Program StatementOrExpr                                       { $2 : $1 }         -- Program will be in reverse, but we can use foldr to interpret
+    | {- empty -}                                                       { [] }
 
-StatementOrExpr : VariableAssignment                            { $1 }
-    | ForLoop                                                   { $1 }
-    | IfStatement                                               { $1 } 
-    | ImportStatement                                           { $1 }
-    | OutputStatement                                           { $1 }
+StatementOrExpr : VariableAssignment                                    { $1 }
+    | ForLoop                                                           { $1 }
+    | IfStatement                                                       { $1 } 
+    | ImportStatement                                                   { $1 }
+    | OutputStatement                                                   { $1 }
 
-OutputStatement : output Expression                             { OutputStmt $2 }
+OutputStatement : output Expression                                     { OutputStmt $2 }
 
-ImportStatement : import '"' id '"' as id                       { ImportStmt $3 $6 }
+ImportStatement : import '"' id '"' as id                               { ImportStmt $3 $6 }
 
-VariableAssignment : let id '=' Expression                      { VarDecl $2 $4 }
-    | id '=' Expression                                         { VarAssign $1 $3 }
+VariableAssignment : let id '=' Expression                              { VarDecl $2 $4 }
+    | id '=' Expression                                                 { VarAssign $1 $3 }
 
-ForLoop : for id in Expression '..' Expression Block            { ForLoop $2 $4 $6 $7 }
+ForLoop : for id in Expression '..' Expression Block                    { ForLoop $2 $4 $6 $7 }
 
-IfStatement : if Expression Block                               { IfStmt $2 $3 [] }
-    | if Expression Block else Block                            { IfStmt $2 $3 $5 }
+IfStatement : if Expression Block                                       { IfStmt $2 $3 [] }
+    | if Expression Block else Block                                    { IfStmt $2 $3 $5 }
 
-Block : '{' Program '}'                                         { $2 }
+Block : '{' Program '}'                                                 { $2 }
 
-Expression : Expression '&&' Expression                         { AndOp $1 $3 }                 
-    | Expression '||' Expression                                { OrOp $1 $3 }
-    | Expression '==' Expression                                { EqOp $1 $3 }
-    | Expression '!=' Expression                                { NeqOp $1 $3 }
-    | Expression '>' Expression                                 { GtOp $1 $3 }
-    | Expression '<' Expression                                 { LtOp $1 $3 }
-    | Expression '>=' Expression                                { GteOp $1 $3 }
-    | Expression '<=' Expression                                { LteOp $1 $3 }
-    | Expression '+' Expression                                 { AddOp $1 $3 }
-    | Expression '-' Expression                                 { SubOp $1 $3 }
-    | Expression '*' Expression                                 { MulOp $1 $3 }
-    | Expression '/' Expression                                 { DivOp $1 $3 }
-    | Expression '%' Expression                                 { ModOp $1 $3 }
-    | Expression '++' Expression                                { HJoinOp $1 $3 }
-    | Expression '::' Expression                                { VJoinOp $1 $3 }
-    | Expression '~' Expression                                 { RotateOp $1 $3 }
-    | Expression '**' Expression                                { ScaleOp $1 $3 }
-    | Expression '&' Expression                                 { TileAndOp $1 $3 }
-    | Expression '|' Expression                                 { TileOrOp $1 $3 }
-    | '?' Expression                                            { TileNotOp $2 }
-    | '<>' Expression                                           { HReflectOp $2 }
-    | '^^' Expression                                           { VReflectOp $2 }
-    | '#' Expression                                            { BlankOp $2 }
-    | '!' Expression                                            { NotOp $2 }
-    | '(' Expression ')'                                        { $2 }
-    | id                                                        { Var $1 }
-    | int                                                       { IntLit $1 }
-    | true                                                      { TrueLit }
-    | false                                                     { FalseLit }
-    | TileDefinition                                            { TileDef $1 }
+Expression : Expression '&&' Expression                                 { AndOp $1 $3 }                 
+    | Expression '||' Expression                                        { OrOp $1 $3 }
+    | Expression '==' Expression                                        { EqOp $1 $3 }
+    | Expression '!=' Expression                                        { NeqOp $1 $3 }
+    | Expression '>' Expression                                         { GtOp $1 $3 }
+    | Expression '<' Expression                                         { LtOp $1 $3 }
+    | Expression '>=' Expression                                        { GteOp $1 $3 }
+    | Expression '<=' Expression                                        { LteOp $1 $3 }
+    | Expression '+' Expression                                         { AddOp $1 $3 }
+    | Expression '-' Expression                                         { SubOp $1 $3 }
+    | Expression '*' Expression                                         { MulOp $1 $3 }
+    | Expression '/' Expression                                         { DivOp $1 $3 }
+    | Expression '%' Expression                                         { ModOp $1 $3 }
+    | Expression '++' Expression                                        { HJoinOp $1 $3 }
+    | Expression '::' Expression                                        { VJoinOp $1 $3 }
+    | Expression '~' Expression                                         { RotateOp $1 $3 }
+    | Expression '**' Expression                                        { ScaleOp $1 $3 }
+    | Expression '&' Expression                                         { TileAndOp $1 $3 }
+    | Expression '|' Expression                                         { TileOrOp $1 $3 }
+    | Expression '@' '(' Expression ',' Expression ',' Expression ')'   { SnipOp $1 $4 $6 $8 }
+    | '?' Expression                                                    { TileNotOp $2 }
+    | '<>' Expression                                                   { HReflectOp $2 }
+    | '^^' Expression                                                   { VReflectOp $2 }
+    | '#' Expression                                                    { BlankOp $2 }
+    | '!' Expression                                                    { NotOp $2 }
+    | '(' Expression ')'                                                { $2 }
+    | id                                                                { Var $1 }
+    | int                                                               { IntLit $1 }
+    | true                                                              { TrueLit }
+    | false                                                             { FalseLit }
+    | TileDefinition                                                    { TileDef $1 }
 
-TileDefinition : '[' RowDefinitions ']'                         { $2 }
+TileDefinition : '[' RowDefinitions ']'                                 { $2 }
 
-RowDefinitions : RowDefinitions RowDefinition                   { $1 ++ [$2] }
-    | {- empty -}                                               { [] }
+RowDefinitions : RowDefinitions RowDefinition                           { $1 ++ [$2] }
+    | {- empty -}                                                       { [] }
 
-RowDefinition : '[' Ints ']'                                    { $2 }
+RowDefinition : '[' Ints ']'                                            { $2 }
 
-Ints : Ints int                                                 { $1 ++ [$2] }
-    | int                                                       { [$1] }
+Ints : Ints int                                                         { $1 ++ [$2] }
+    | int                                                               { [$1] }
 
 {
 parseError :: [Lexer.Token] -> a
@@ -195,6 +199,7 @@ data Expr =
     | TileAndOp Expr Expr
     | TileOrOp Expr Expr
     | TileNotOp Expr
+    | SnipOp Expr Expr Expr Expr
     | TileDef [[Int]]
     | TrueLit
     | FalseLit

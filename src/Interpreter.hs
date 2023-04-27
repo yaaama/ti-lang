@@ -97,10 +97,10 @@ executeStmt imps env@(scopes, out) (IfStmt expr stmts1 stmts2)
 executeStmt imps env@(scopes, out) (OutputStmt expr) = (scopes, out ++ [unparseValue $ eval env expr])
     where
         unparseValue :: VarValue -> String
-        unparseValue (IntValue x) = show x ++ "\n"
-        unparseValue (BoolValue True) = "true\n"
-        unparseValue (BoolValue False) = "false\n"
-        unparseValue (TileValue x) = intercalate "\n" (map (unwords . map show) x) ++ "\n"
+        unparseValue (IntValue x) = show x
+        unparseValue (BoolValue True) = "true"
+        unparseValue (BoolValue False) = "false"
+        unparseValue (TileValue x) = intercalate "\n" (map (unwords . map show) x)
 
 executeStmt imps env (ImportStmt file id) = bindCurrentScope env (id, lookupImport imps file)
     where 
@@ -191,6 +191,19 @@ eval env (TileNotOp expr) = TileValue $ map (map (\ c -> if c == 1 then 0 else 1
     where 
         tile = evalTile env expr
 
+eval env (SnipOp expr1 expr2 expr3 expr4) =
+    if col < 0 || row < 0
+        then error "Snip start col and snip start row must be integers greater than 0"
+        else TileValue $ map (takeFrom col size) $ takeFrom row size tile
+    where
+        tile = evalTile env expr1
+        col = evalInt env expr2
+        row = evalInt env expr3
+        size = evalInt env expr4
+
+        takeFrom ::  Int -> Int -> [a] -> [a]
+        takeFrom n c xs = take c $ drop n xs 
+
 
 evalInt :: Environment -> Expr -> Int
 evalInt env expr = x where (IntValue x) = eval env expr
@@ -220,7 +233,8 @@ main = do
 
     -- Run type check and log errors
     let typeErrs = verify ast
-    mapM_ putStr typeErrs
+
+    mapM_ putStrLn typeErrs
 
     -- If there is no errors, interpret
     
@@ -241,4 +255,4 @@ main = do
         -- Execute (imports - environment (scope, out) - ast)
         let (_, out) = execute imps ([[]], []) ast
 
-        mapM_ putStr out
+        mapM_ putStrLn out
