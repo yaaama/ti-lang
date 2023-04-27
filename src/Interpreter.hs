@@ -7,7 +7,6 @@ import System.Environment (getArgs)
 import Lexer (alexScanTokens)
 import Parser
 import TypeChecker (verify)
-import Data.Text (splitOn)
 
 -- Main
 
