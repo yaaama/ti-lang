@@ -100,7 +100,7 @@ executeStmt imps env@(scopes, out) (OutputStmt expr) = (scopes, out ++ [unparseV
         unparseValue (IntValue x) = show x
         unparseValue (BoolValue True) = "true"
         unparseValue (BoolValue False) = "false"
-        unparseValue (TileValue x) = intercalate "\n" (map (unwords . map show) x)
+        unparseValue (TileValue x) = intercalate "\n" (map (intercalate "" . map show) x)
 
 executeStmt imps env (ImportStmt file id) = bindCurrentScope env (id, lookupImport imps file)
     where 

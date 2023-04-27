@@ -8,7 +8,7 @@ let result_tile = []
 for i in 0..29 {
     let row = []
 
-    for j in 0..9 {
+    for j in 0..19 {
         if j % 2 == 0 {
             row = row ++ base_tile
         }
