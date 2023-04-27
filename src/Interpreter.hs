@@ -2,6 +2,8 @@ module Interpreter where
 
 import Control.Monad (mapM_, when)
 import Data.Bifunctor (Bifunctor(second))
+import Data.List (transpose, unwords, intercalate)
+import Data.Char (digitToInt)
 import System.Environment (getArgs)
 
 import Lexer (alexScanTokens)
@@ -29,7 +31,7 @@ parseTile :: String -> VarValue
 parseTile input = TileValue $ map parseLine $ lines input
     where
         parseLine :: String -> [Int]
-        parseLine = map read . words
+        parseLine = map digitToInt
 
 -- Restore the environment after accessing children scopes
 restore :: Environment -> Environment
@@ -51,6 +53,9 @@ bind (scope : scopes, out) prev (id, v) =
             then (True, prev ++ [(id, v)] ++ scope)
             else bindScope scope (prev ++ [entry]) (id, v)
 
+bindCurrentScope :: Environment -> (String, VarValue) -> Environment
+bindCurrentScope (scope : scopes, out) (id, v) = (((id, v) : scope) : scopes, out)
+
 -- Look up a variable up the scope chain
 lookupVar :: Environment -> String -> VarValue
 lookupVar ([], out) id = error "Unreachable"                      -- Not happening. Type checker already handled it
@@ -69,17 +74,19 @@ execute imps = foldr $ flip $ executeStmt imps
 -- Execute individual statement
 executeStmt :: Imports -> Environment -> Statement -> Environment
 
-executeStmt imps env@(scope : scopes, out) (VarDecl id expr) = (((id, eval env expr) : scope) : scopes, out)
+executeStmt imps env (VarDecl id expr) = bindCurrentScope env (id, eval env expr)
 executeStmt imps env (VarAssign id expr) = bind env [] (id, eval env expr)
 
 executeStmt imps env@(scopes, out) (ForLoop id expr1 expr2 stmts) = restore env2
-    where 
+    where
         (IntValue start) = eval env expr1
         (IntValue end) = eval env expr2
 
-        env2 = 
-            foldl (\env i -> execute imps (bind env [] (id, IntValue i)) stmts)         -- For each iteration, update the counter variable
-                ([] : scopes, out) [start..end]                                         -- Add a new scope
+        env2 = foldl executeBody ([] : scopes, out) [start..end]
+
+        executeBody :: Environment -> Int -> Environment
+        executeBody env i = ([] : restored, out2)
+            where (restored, out2) = restore $ execute imps (bindCurrentScope env (id, IntValue i)) stmts
 
 executeStmt imps env@(scopes, out) (IfStmt expr stmts1 stmts2) 
     | cond = restore $ execute imps ([] : scopes, out) stmts1
@@ -90,12 +97,12 @@ executeStmt imps env@(scopes, out) (IfStmt expr stmts1 stmts2)
 executeStmt imps env@(scopes, out) (OutputStmt expr) = (scopes, out ++ [unparseValue $ eval env expr])
     where
         unparseValue :: VarValue -> String
-        unparseValue (IntValue x) = show x
-        unparseValue (BoolValue True) = "true"
-        unparseValue (BoolValue False) = "false"
-        unparseValue (TileValue x) = show x
+        unparseValue (IntValue x) = show x ++ "\n"
+        unparseValue (BoolValue True) = "true\n"
+        unparseValue (BoolValue False) = "false\n"
+        unparseValue (TileValue x) = intercalate "\n" (map (unwords . map show) x) ++ "\n"
 
-executeStmt imps (scope : scopes, out) (ImportStmt file id) = (((id, lookupImport imps file) : scope) : scopes, out)
+executeStmt imps env (ImportStmt file id) = bindCurrentScope env (id, lookupImport imps file)
     where 
         lookupImport :: Imports -> String -> VarValue
         lookupImport [] file = error "Import statements must only be at top level"
@@ -129,19 +136,43 @@ eval env (EqOp expr1 expr2) = BoolValue $ eval env expr1 == eval env expr2
 eval env (NeqOp expr1 expr2) = BoolValue $ eval env expr1 /= eval env expr2
 
 eval env (HJoinOp expr1 expr2) = 
-    if lH /= rH
-        then error $ "Cannot horizontally join tiles of different heights. Left height: " ++ show lH ++ ". Right height: " ++ show rH
-        else TileValue $ zipWith (++) lTile rTile
+    if lh /= 0 && lh /= rh
+        then error $ "Cannot horizontally join tiles of different heights. Left height: " ++ show lh ++ ". Right height: " ++ show rh
+        else TileValue $ if lh == 0 then rTile else zipWith (++) lTile rTile
     where
         lTile = evalTile env expr1
         rTile = evalTile env expr2
 
-        lH = length lTile
-        rH = length rTile
+        lh = length lTile
+        rh = length rTile
 
-eval env (VJoinOp expr1 expr2) = undefined
-eval env (RotateOp expr1 expr2) = undefined
-eval env (ScaleOp expr1 expr2) = undefined
+eval env (VJoinOp expr1 expr2) = 
+    if lw /= 0 && lw /= rw
+        then error $ "Cannot vertically join tiles of different widths. Left width: " ++ show lw ++ ". Right width: " ++ show rw
+        else TileValue $ lTile ++ rTile
+    where
+        lTile = evalTile env expr1
+        rTile = evalTile env expr2
+
+        lw = if null lTile then 0 else length $ head lTile
+        rw = if null rTile then 0 else length $ head rTile
+
+eval env (RotateOp expr1 expr2) = 
+    if deg `notElem` [0, 90, 180, 270] 
+        then error "Can only rotate a tile by a multiple of 90"
+        else TileValue $ foldr (\_ acc -> transpose . reverse $ acc) tile [1..(deg `div` 90)]
+    where 
+        tile = evalTile env expr1
+        deg = evalInt env expr2 `mod` 360
+
+eval env (ScaleOp expr1 expr2) = 
+    if factor <= 0 
+        then error "Scale factor must be a positive integer"
+        else TileValue $ concatMap (replicate factor . concatMap (replicate factor)) tile
+    where
+        tile = evalTile env expr1
+        factor = evalInt env expr2
+
 
 evalInt :: Environment -> Expr -> Int
 evalInt env expr = x where (IntValue x) = eval env expr

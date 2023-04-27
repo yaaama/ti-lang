@@ -2,4 +2,16 @@ import "tile" as tile
 
 output tile ++ tile
 
+output [] ++ tile
+
+output tile ~ 90
+
+output tile :: tile
+
+let a = [] :: tile
+
+output a
+
+output tile ** 3
+
 output tile ++ [[0 1]] // Throws

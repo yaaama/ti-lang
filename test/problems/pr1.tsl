@@ -5,6 +5,7 @@ let result_tile = []
 
 for i in 0..63 {
     let row = []
+    let test = i + 1
 
     for j in 0..63 {
         if (i + j) % 2 == 0 {
