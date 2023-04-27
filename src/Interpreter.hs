@@ -14,8 +14,7 @@ type Scope = [(String, VarValue)]
 type Imports = [(String, VarValue)]
 type Environment = ([Scope], [String])              -- Environment includes scopes (innermost first) and output strings
 
-data Tile = Black | White | Tile [Tile] deriving (Show, Eq)
-data VarValue = IntValue Int | BoolValue Bool | TileValue Tile deriving (Eq)
+data VarValue = IntValue Int | BoolValue Bool | TileValue [[Int]] deriving (Eq)
 
 -- Scan top-level imports statically
 scanImports :: [Statement] -> [String]
@@ -27,14 +26,10 @@ scanImports = foldr (\stmt acc -> acc ++ getFile stmt) []
 
 -- Parses a tile value if given a string representation of a tile
 parseTile :: String -> VarValue
-parseTile input = TileValue $ Tile $ map parseLine $ lines input
+parseTile input = TileValue $ map parseLine $ lines input
     where
-        parseLine :: String -> Tile
-        parseLine = Tile . map (toTileValue . read) . words
-
-        toTileValue :: Int -> Tile
-        toTileValue 0 = White
-        toTileValue 1 = Black
+        parseLine :: String -> [Int]
+        parseLine = map read . words
 
 -- Restore the environment after accessing children scopes
 restore :: Environment -> Environment
@@ -113,14 +108,7 @@ eval env (IntLit x) = IntValue x
 eval env TrueLit = BoolValue True
 eval env FalseLit = BoolValue False
 eval env (Var id) = lookupVar env id
-eval env (TileDef exprs) = TileValue $ Tile $ map (makeTile . eval env) exprs
-    where 
-        makeTile :: VarValue -> Tile
-        makeTile v = case v of
-            IntValue 0 -> White
-            IntValue 1 -> Black
-            TileValue tile -> tile
-            _ -> error "Invalid tile definition. Each value must be either 0, 1 or evaluate to 0 or 1"
+eval env (TileDef x) = TileValue x
 
 eval env (AddOp expr1 expr2) = IntValue $ evalInt env expr1 + evalInt env expr2
 eval env (SubOp expr1 expr2) = IntValue $ evalInt env expr1 - evalInt env expr2
@@ -140,7 +128,17 @@ eval env (NotOp expr) = BoolValue $ not $ evalBool env expr
 eval env (EqOp expr1 expr2) = BoolValue $ eval env expr1 == eval env expr2
 eval env (NeqOp expr1 expr2) = BoolValue $ eval env expr1 /= eval env expr2
 
-eval env (HJoinOp expr1 expr2) = undefined
+eval env (HJoinOp expr1 expr2) = 
+    if lH /= rH
+        then error $ "Cannot horizontally join tiles of different heights. Left height: " ++ show lH ++ ". Right height: " ++ show rH
+        else TileValue $ zipWith (++) lTile rTile
+    where
+        lTile = evalTile env expr1
+        rTile = evalTile env expr2
+
+        lH = length lTile
+        rH = length rTile
+
 eval env (VJoinOp expr1 expr2) = undefined
 eval env (RotateOp expr1 expr2) = undefined
 eval env (ScaleOp expr1 expr2) = undefined
@@ -151,7 +149,7 @@ evalInt env expr = x where (IntValue x) = eval env expr
 evalBool :: Environment -> Expr -> Bool
 evalBool env expr = x where (BoolValue x) = eval env expr
 
-evalTile :: Environment -> Expr -> Tile
+evalTile :: Environment -> Expr -> [[Int]]
 evalTile env expr = x where (TileValue x) = eval env expr
 
 -- Implement required interface
@@ -173,8 +171,6 @@ main = do
 
         -- First, we scan for imports
         let files = scanImports ast
-
-        print files
 
         -- Then, read imports
         fileContents <- mapM (\file -> 

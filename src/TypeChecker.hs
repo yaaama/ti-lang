@@ -82,13 +82,7 @@ typeof env (Var id) = getBinding env id
 typeof env (IntLit _) = return IntType
 typeof env TrueLit = return BoolType
 typeof env FalseLit = return BoolType
-typeof env (TileDef exprs) = do
-    ts <- mapM (typeof env) exprs    
-    let valid = foldr (\t acc -> (t == IntType || t == TileType) && acc) True ts
-    unless valid $ 
-        tell ["Tile definition must involve expressions that evaluate either to type " ++ unparseType IntType ++ " or " ++ unparseType TileType]
-
-    return TileType
+typeof env (TileDef _) = return TileType
 
 typeof env (AddOp expr1 expr2) = do 
     assertOperands env "+" ((expr1, IntType), (expr2, IntType))

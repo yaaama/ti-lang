@@ -1,5 +1,5 @@
 import "tile" as tile
 
-let result_tile = [tile [[0 0 0 1] [0 0 1 1] [0 1 1 1] [1 1 1 1]]]
+output tile ++ tile
 
-output result_tile
+output tile ++ [[0 1]] // Throws

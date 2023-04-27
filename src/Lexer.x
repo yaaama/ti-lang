@@ -32,6 +32,8 @@ as                  { \_ -> AsKw }
 \*\*                { \_ -> ScaleOp }
 \+\+                { \_ -> HJoinOp }
 ::                  { \_ -> VJoinOp }
+\<\>                { \_ -> HReflect }
+\^\^                { \_ -> VReflect }
 
 -- Comparisons
 
@@ -96,6 +98,8 @@ data Token =
     | ScaleOp
     | HJoinOp
     | VJoinOp
+    | HReflect
+    | VReflect
     | EqOp
     | NeqOp
     | GtOp

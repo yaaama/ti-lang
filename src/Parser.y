@@ -25,6 +25,8 @@ import qualified Lexer
     '**'        { Lexer.ScaleOp }
     '++'        { Lexer.HJoinOp }
     '::'        { Lexer.VJoinOp }
+    '<>'        { Lexer.HReflect }
+    '^^'        { Lexer.VReflect }
 
     -- Comparison operators
 
@@ -81,6 +83,7 @@ import qualified Lexer
 %left '*' '/' '%'
 %left '++' '::'
 %left '~' '**'
+%right '<>' '^^'
 %right '!'
 
 %%
@@ -125,6 +128,8 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
     | Expression '::' Expression                                { VJoinOp $1 $3 }
     | Expression '~' Expression                                 { RotateOp $1 $3 }
     | Expression '**' Expression                                { ScaleOp $1 $3 }
+    | '<>' Expression                                           { HReflectOp $2 }
+    | '^^' Expression                                           { VReflectOp $2 }
     | '!' Expression                                            { NotOp $2 }
     | '(' Expression ')'                                        { $2 }
     | id                                                        { Var $1 }
@@ -135,8 +140,13 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
 
 TileDefinition : '[' RowDefinitions ']'                         { $2 }
 
-RowDefinitions : RowDefinitions Expression                      { $1 ++ [$2] }
+RowDefinitions : RowDefinitions RowDefinition                   { $1 ++ [$2] }
     | {- empty -}                                               { [] }
+
+RowDefinition : '[' Ints ']'                                    { $2 }
+
+Ints : Ints int                                                 { $1 ++ [$2] }
+    | int                                                       { [$1] }
 
 {
 parseError :: [Lexer.Token] -> a
@@ -171,7 +181,9 @@ data Expr =
     | VJoinOp Expr Expr
     | RotateOp Expr Expr
     | ScaleOp Expr Expr
-    | TileDef [Expr]
+    | HReflectOp Expr
+    | VReflectOp Expr
+    | TileDef [[Int]]
     | TrueLit
     | FalseLit
     | Var String
