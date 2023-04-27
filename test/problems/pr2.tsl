@@ -1,0 +1,49 @@
+import "tile1" as tile1
+
+let base_tile = []
+let result_tile = []
+
+let top_right = []
+top_right = tile1 ~ 90
+
+let bottom_left = []
+bottom_left = tile1 ~ 270
+
+let bottom_right = []
+bottom_right = tile1 ~ 180
+
+let row1 = []
+row1 = row1 ++ tile1
+row1 = row1 ++ top_right
+
+let row2 = []
+row2 = row2 ++ bottom_left
+row2 = row2 ++ bottom_right
+
+base_tile = base_tile :: row1
+base_tile = base_tile :: row2
+
+let base_tile3 = []
+base_tile3 = base_tile ** 3
+
+let border_rows = []
+let side_columns = []
+let mid_section = []
+
+for i in 0..4 {
+    border_rows = border_rows ++ base_tile
+}
+
+for i in 0..2 {
+    side_columns = side_columns :: base_tile
+}
+
+mid_section = mid_section ++ side_columns
+mid_section = mid_section ++ base_tile3
+mid_section = mid_section ++ side_columns
+
+result_tile = result_tile :: border_rows
+result_tile = result_tile :: mid_section
+result_tile = result_tile :: border_rows
+
+output result_tile
