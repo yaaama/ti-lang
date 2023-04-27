@@ -92,8 +92,7 @@ StatementOrExpr : VariableAssignment                            { $1 }
     | ForLoop                                                   { $1 }
     | IfStatement                                               { $1 } 
     | ImportStatement                                           { $1 }
-    | OutputStatement                                           { $1 }                         
-    | Expression                                                { Expr $1 }
+    | OutputStatement                                           { $1 }
 
 OutputStatement : output Expression                             { OutputStmt $2 }
 
@@ -150,7 +149,6 @@ data Statement =
     | IfStmt Expr [Statement] [Statement]
     | OutputStmt Expr
     | ImportStmt String String
-    | Expr Expr
     deriving (Show)
 
 data Expr = 
