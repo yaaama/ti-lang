@@ -1,0 +1,5 @@
+let tile = []
+
+tile = tile ** tile
+
+tile = tile ** (1 + 2)         // Should not fail

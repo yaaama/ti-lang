@@ -37,7 +37,7 @@ addBinding env (id, t) = if isDeclared env id
     where 
         isDeclared :: TypeEnv -> String -> Bool
         isDeclared [] id = False
-        isDeclared ((x, _):xs) id = (x == id) || isDeclared xs id
+        isDeclared ((x, _) : xs) id = (x == id) || isDeclared xs id
 
 verifyStmt :: TypeEnv -> Statement -> Writer [String] TypeEnv
 
@@ -72,10 +72,7 @@ verifyStmt env (IfStmt expr stmts1 stmts2) = do
     verifyBlock env stmts2
     return env
 
-verifyStmt env (OutputStmt expr) = do
-    t <- typeof env expr
-    when (t /= TileType) $ tell ["Program must output an expression that evaluate to type " ++ unparseType TileType]
-    return env
+verifyStmt env (OutputStmt expr) = return env
 
 verifyStmt env (ImportStmt file id) = addBinding env (id, TileType)
 
