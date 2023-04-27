@@ -1,8 +1,10 @@
 import "tile1" as tile1
 
-let blank = []
 let base_tile = []
 let result_tile = []
+
+let blank = []
+blank = # tile1
 
 let tile1y = []
 tile1y = ^^ tile1
