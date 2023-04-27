@@ -2,9 +2,11 @@ import "tile1" as tile1
 import "tile2" as tile2
 import "tile3" as tile3
 
-let blank = []
 let base_tile = []
 let result_tile = []
+
+let blank = []
+blank = # tile1
 
 for i in 0..49 {
     let row = []
