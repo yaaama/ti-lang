@@ -135,7 +135,7 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
 
 TileDefinition : '[' RowDefinitions ']'                         { $2 }
 
-RowDefinitions : RowDefinitions Expression                      { $2 : $1 }
+RowDefinitions : RowDefinitions Expression                      { $1 ++ [$2] }
     | {- empty -}                                               { [] }
 
 {

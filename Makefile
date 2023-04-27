@@ -1,5 +1,5 @@
 all: clean build Lexer.hs Parser.hs
-	ghc src/Main.hs -isrc -o build/Main -odir build -hidir build
+	ghc src/Interpreter.hs -main-is Interpreter -isrc -o build/Interpreter -odir build -hidir build
 
 build:
 	mkdir build

@@ -1,149 +1,192 @@
 module Interpreter where
 
-import Data.Map (Map)
-import Data.Map qualified as Map
-import Debug.Trace
-import Lexer (Token, alexScanTokens)
+import Control.Monad (mapM_, when)
+import Data.Bifunctor (Bifunctor(second))
+import System.Environment (getArgs)
+
+import Lexer (alexScanTokens)
 import Parser
+import TypeChecker (verify)
+import Data.Text (splitOn)
 
-type VarMap = Map String VarValue
+-- Main
 
-data VarValue = IntValue Int | BoolValue Bool | TileValue -- need a data type here
-  deriving (Show, Eq)
+type Scope = [(String, VarValue)]
+type Imports = [(String, VarValue)]
+type Environment = ([Scope], [String])              -- Environment includes scopes (innermost first) and output strings
 
-execute :: [Statement] -> VarMap
-execute = foldr execute' Map.empty
+data Tile = Black | White | Tile [Tile] deriving (Show, Eq)
+data VarValue = IntValue Int | BoolValue Bool | TileValue Tile deriving (Eq)
 
-execute' :: Statement -> VarMap -> VarMap
-execute' (VarDecl id expr) varMap =
-  if Map.member id varMap
-    then error $ "Identifier " ++ id ++ " has already been defined"
-    else Map.insert id (evalExpr varMap expr) varMap
-execute' (VarAssign id expr) varMap =
-  if Map.notMember id varMap
-    then error $ "Identifier " ++ id ++ " is not defined"
-    else Map.insert id (evalExpr varMap expr) varMap
-execute' (IfStmt condExpr trueStmts falseStmts) varMap =
-  executeIf varMap condExpr trueStmts falseStmts
-execute' (ForLoop id startExpr endExpr loopStmts) varMap =
-  executeFor varMap id startExpr endExpr loopStmts
+-- Scan top-level imports statically
+scanImports :: [Statement] -> [String]
+scanImports = foldr (\stmt acc -> acc ++ getFile stmt) []
+    where 
+        getFile :: Statement -> [String]
+        getFile (ImportStmt file _) = [file]
+        getFile _ = []
 
-executeIf :: VarMap -> Expr -> [Statement] -> [Statement] -> VarMap
-executeIf varMap condExpr trueStmts falseStmts =
-  case evalExpr varMap condExpr of
-    BoolValue True -> execute (trueStmts ++ [VarAssign "state" (Var "state")])
-    BoolValue False -> execute (falseStmts ++ [VarAssign "state" (Var "state")])
-    _ -> error "If condition should be a boolean expression"
+-- Parses a tile value if given a string representation of a tile
+parseTile :: String -> VarValue
+parseTile input = TileValue $ Tile $ map parseLine $ lines input
+    where
+        parseLine :: String -> Tile
+        parseLine = Tile . map (toTileValue . read) . words
 
-executeFor :: VarMap -> String -> Expr -> Expr -> [Statement] -> VarMap
-executeFor varMap id startExpr endExpr loopStmts =
-  case (evalExpr varMap startExpr, evalExpr varMap endExpr) of
-    (IntValue startVal, IntValue endVal) ->
-      foldr executeLoop varMap [startVal .. endVal]
-    _ -> error "For loop start and end should be integers"
-  where
-    executeLoop iterVal varMap =
-      let varMapWithIter = Map.insert id (IntValue iterVal) varMap
-          updatedVarMap = execute (loopStmts ++ [VarAssign "state" (Var "state")])
-       in Map.delete id updatedVarMap
+        toTileValue :: Int -> Tile
+        toTileValue 0 = White
+        toTileValue 1 = Black
 
--- Will check for variable binding
-lookupVar :: VarMap -> String -> VarValue
-lookupVar var x = case Map.lookup x var of
-  Just v -> v
-  Nothing -> error $ "Unbound variable! " ++ x
+-- Restore the environment after accessing children scopes
+restore :: Environment -> Environment
+restore (scopes, out) = (tail scopes, out)
 
--- Main function to evaluate expressions
-evalExpr :: VarMap -> Expr -> VarValue
--- Literals
-evalExpr varm (IntLit val) = IntValue val
-evalExpr varm TrueLit = BoolValue True
-evalExpr varm FalseLit = BoolValue False
-evalExpr varm (Var x) = lookupVar varm x
--- Math operations
-evalExpr varm (AddOp expr1 expr2) = evalMathOp varm (+) expr1 expr2
-evalExpr varm (SubOp expr1 expr2) = evalMathOp varm (-) expr1 expr2
-evalExpr varm (MulOp expr1 expr2) = evalMathOp varm (*) expr1 expr2
-evalExpr varm (DivOp expr1 expr2) = evalMathOp varm div expr1 expr2
-evalExpr varm (ModOp expr1 expr2) = evalMathOp varm mod expr1 expr2
--- Boolean operations
-evalExpr varm (AndOp expr1 expr2) = evalBoolOp varm (&&) expr1 expr2
-evalExpr varm (OrOp expr1 expr2) = evalBoolOp varm (||) expr1 expr2
-evalExpr varm (NotOp expr) = evalNotOp varm expr
--- Comparison operators
-evalExpr varm (EqOp expr1 expr2) = evalEqOp varm expr1 expr2
-evalExpr varm (NeqOp expr1 expr2) = evalNeqOp varm expr1 expr2
-evalExpr varm (GtOp expr1 expr2) = evalGtOp varm expr1 expr2
-evalExpr varm (LtOp expr1 expr2) = evalLtOp varm expr1 expr2
-evalExpr varm (GteOp expr1 expr2) = evalGteOp varm expr1 expr2
-evalExpr varm (LteOp expr1 expr2) = evalLteOp varm expr1 expr2
+-- Update a binding by finding a matching name up the scope chain
+bind :: Environment -> [Scope] -> (String, VarValue) -> Environment
+bind ([], out) prev (id, v) = (((id, v) : head prev) : tail prev, out)
+bind (scope : scopes, out) prev (id, v) = 
+    if found 
+        then (prev ++ [nscope] ++ scopes, out)
+        else bind (scopes, out) (prev ++ [scope]) (id, v) 
+    where 
+        (found, nscope) = bindScope scope [] (id, v)
 
--- Functions to evaluate the comparison operators
-evalEqOp, evalNeqOp, evalGtOp, evalLtOp, evalGteOp, evalLteOp :: VarMap -> Expr -> Expr -> VarValue
-evalEqOp varm expr1 expr2 = BoolValue (evalExpr varm expr1 == evalExpr varm expr2)
-evalNeqOp varm expr1 expr2 = BoolValue (evalExpr varm expr1 /= evalExpr varm expr2)
-evalGtOp varm = evalCompOp varm (>)
-evalLtOp varm = evalCompOp varm (<)
-evalGteOp varm = evalCompOp varm (>=)
-evalLteOp varm = evalCompOp varm (<=)
+        bindScope :: Scope -> Scope -> (String, VarValue) -> (Bool, Scope)
+        bindScope [] prev (id, v) = (False, prev)
+        bindScope (entry@(x, _) : scope) prev (id, v) = if id == x
+            then (True, prev ++ [(id, v)] ++ scope)
+            else bindScope scope (prev ++ [entry]) (id, v)
 
-evalCompOp :: VarMap -> (Int -> Int -> Bool) -> Expr -> Expr -> VarValue
-evalCompOp varm op expr1 expr2 =
-  case (evalExpr varm expr1, evalExpr varm expr2) of
-    (IntValue v1, IntValue v2) -> BoolValue (op v1 v2)
-    _ -> error "Both operands should be integers for comparison operations"
+-- Look up a variable up the scope chain
+lookupVar :: Environment -> String -> VarValue
+lookupVar ([], out) id = error "Unreachable"                      -- Not happening. Type checker already handled it
+lookupVar (scope : scopes, out) id = case lookupScope scope id of
+    Nothing -> lookupVar (scopes, out) id
+    Just t -> t
+    where 
+        lookupScope :: Scope -> String -> Maybe VarValue
+        lookupScope [] id = Nothing
+        lookupScope ((x, v) : scope) id = if id == x then Just v else lookupScope scope id
 
--- Function to handle math operations
-evalMathOp :: VarMap -> (Int -> Int -> Int) -> Expr -> Expr -> VarValue
-evalMathOp varm op expr1 expr2 =
-  case (evalExpr varm expr1, evalExpr varm expr2) of
-    (IntValue v1, IntValue v2) -> IntValue (op v1 v2)
-    _ -> error "Both operands should be integers for math operations"
+-- Execute statements (code block)
+execute :: Imports -> Environment -> [Statement] -> Environment
+execute imps = foldr $ flip $ executeStmt imps
 
--- Evaluates boolean operation
-evalBoolOp :: VarMap -> (Bool -> Bool -> Bool) -> Expr -> Expr -> VarValue
-evalBoolOp varm op expr1 expr2 =
-  case (evalExpr varm expr1, evalExpr varm expr2) of
-    (BoolValue v1, BoolValue v2) -> BoolValue (op v1 v2)
-    _ -> error "Both operands should be booleans for boolean operations"
+-- Execute individual statement
+executeStmt :: Imports -> Environment -> Statement -> Environment
 
--- Evaluates the NOT operator
-evalNotOp :: VarMap -> Expr -> VarValue
-evalNotOp varm expr =
-  case evalExpr varm expr of
-    BoolValue v -> BoolValue (not v)
-    _ -> error "Operand should be a boolean for the 'not' operator"
+executeStmt imps env@(scope : scopes, out) (VarDecl id expr) = (((id, eval env expr) : scope) : scopes, out)
+executeStmt imps env (VarAssign id expr) = bind env [] (id, eval env expr)
 
--- Can test statements using this in GHCI
--- runProgram "let x = 10"
-runProgram :: String -> VarMap
-runProgram input = execute (parse . alexScanTokens $ input)
+executeStmt imps env@(scopes, out) (ForLoop id expr1 expr2 stmts) = restore env2
+    where 
+        (IntValue start) = eval env expr1
+        (IntValue end) = eval env expr2
 
--- Testing expressions in Ghci
-testEvalExpr :: String -> VarValue
-testEvalExpr input =
-  let tokens = alexScanTokens input
-      expr = case parse tokens of
-        [Expr e] -> e
-        _ -> error $ "Invalid input: " ++ show tokens
-   in evalExpr Map.empty expr
+        env2 = 
+            foldl (\env i -> execute imps (bind env [] (id, IntValue i)) stmts)         -- For each iteration, update the counter variable
+                ([] : scopes, out) [start..end]                                         -- Add a new scope
 
--- Lets you test the lexer
-testLexer :: String -> [Lexer.Token]
-testLexer = alexScanTokens
+executeStmt imps env@(scopes, out) (IfStmt expr stmts1 stmts2) 
+    | cond = restore $ execute imps ([] : scopes, out) stmts1
+    | otherwise = restore $ execute imps ([] : scopes, out) stmts2
+    where 
+        (BoolValue cond) = eval env expr
 
--- Testing parser
-testParser :: String -> [Statement]
-testParser input =
-  let tokens = alexScanTokens input
-   in parse tokens
+executeStmt imps env@(scopes, out) (OutputStmt expr) = (scopes, out ++ [unparseValue $ eval env expr])
+    where
+        unparseValue :: VarValue -> String
+        unparseValue (IntValue x) = show x
+        unparseValue (BoolValue True) = "true"
+        unparseValue (BoolValue False) = "false"
+        unparseValue (TileValue x) = show x
+
+executeStmt imps (scope : scopes, out) (ImportStmt file id) = (((id, lookupImport imps file) : scope) : scopes, out)
+    where 
+        lookupImport :: Imports -> String -> VarValue
+        lookupImport [] file = error "Import statements must only be at top level"
+        lookupImport ((x, v) : imps) file = if x == file then v else lookupImport imps file
+
+-- Evaluate an expression
+eval :: Environment -> Expr -> VarValue
+
+eval env (IntLit x) = IntValue x
+eval env TrueLit = BoolValue True
+eval env FalseLit = BoolValue False
+eval env (Var id) = lookupVar env id
+eval env (TileDef exprs) = TileValue $ Tile $ map (makeTile . eval env) exprs
+    where 
+        makeTile :: VarValue -> Tile
+        makeTile v = case v of
+            IntValue 0 -> White
+            IntValue 1 -> Black
+            TileValue tile -> tile
+            _ -> error "Invalid tile definition. Each value must be either 0, 1 or evaluate to 0 or 1"
+
+eval env (AddOp expr1 expr2) = IntValue $ evalInt env expr1 + evalInt env expr2
+eval env (SubOp expr1 expr2) = IntValue $ evalInt env expr1 - evalInt env expr2
+eval env (MulOp expr1 expr2) = IntValue $ evalInt env expr1 * evalInt env expr2
+eval env (DivOp expr1 expr2) = IntValue $ evalInt env expr1 `div` evalInt env expr2
+eval env (ModOp expr1 expr2) = IntValue $ evalInt env expr1 `mod` evalInt env expr2
+
+eval env (GtOp expr1 expr2) = BoolValue $ evalInt env expr1 > evalInt env expr2
+eval env (LtOp expr1 expr2) = BoolValue $ evalInt env expr1 < evalInt env expr2
+eval env (GteOp expr1 expr2) = BoolValue $ evalInt env expr1 >= evalInt env expr2
+eval env (LteOp expr1 expr2) = BoolValue $ evalInt env expr1 <= evalInt env expr2
+
+eval env (AndOp expr1 expr2) = BoolValue $ evalBool env expr1 && evalBool env expr2
+eval env (OrOp expr1 expr2) = BoolValue $ evalBool env expr2 || evalBool env expr2
+eval env (NotOp expr) = BoolValue $ not $ evalBool env expr
+
+eval env (EqOp expr1 expr2) = BoolValue $ eval env expr1 == eval env expr2
+eval env (NeqOp expr1 expr2) = BoolValue $ eval env expr1 /= eval env expr2
+
+eval env (HJoinOp expr1 expr2) = undefined
+eval env (VJoinOp expr1 expr2) = undefined
+eval env (RotateOp expr1 expr2) = undefined
+eval env (ScaleOp expr1 expr2) = undefined
+
+evalInt :: Environment -> Expr -> Int
+evalInt env expr = x where (IntValue x) = eval env expr
+
+evalBool :: Environment -> Expr -> Bool
+evalBool env expr = x where (BoolValue x) = eval env expr
+
+evalTile :: Environment -> Expr -> Tile
+evalTile env expr = x where (TileValue x) = eval env expr
+
+-- Implement required interface
 
 main :: IO ()
 main = do
-  let program =
-        unlines
-          [ "let sum = 0",
-            "",
-            " sum = sum + 1"
-          ]
-  print $ runProgram program
+    args <- getArgs
+    let filePath = head args
+    src <- readFile filePath
+    let ast = parse . alexScanTokens $ src
+
+    -- Run type check and log errors
+    let typeErrs = verify ast
+    mapM_ putStr typeErrs
+
+    -- If there is no errors, interpret
+    
+    when (null typeErrs) $ do
+
+        -- First, we scan for imports
+        let files = scanImports ast
+
+        print files
+
+        -- Then, read imports
+        fileContents <- mapM (\file -> 
+            do
+                content <- readFile $ file ++ ".tl"
+                return (file, content)) files
+
+        -- Parse imports into tile values
+        let imps = map (second parseTile) fileContents
+        
+        -- Execute (imports - environment (scope, out) - ast)
+        let (_, out) = execute imps ([[]], []) ast
+
+        mapM_ putStr out

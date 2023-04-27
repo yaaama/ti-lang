@@ -1,0 +1,9 @@
+let x = 1
+let y = 2
+
+if x + y == 3 {
+    output true
+} 
+else {
+    output false
+}
