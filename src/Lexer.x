@@ -35,6 +35,9 @@ as                  { \_ -> AsKw }
 \<\>                { \_ -> HReflectOp }
 \^\^                { \_ -> VReflectOp }
 \#                  { \_ -> BlankOp }
+&                   { \_ -> TileAndOp }
+\|                  { \_ -> TileOrOp }
+\?                   { \_ -> TileNotOp }
 
 -- Comparisons
 
@@ -102,6 +105,9 @@ data Token =
     | HReflectOp
     | VReflectOp
     | BlankOp
+    | TileAndOp
+    | TileNotOp
+    | TileOrOp
     | EqOp
     | NeqOp
     | GtOp

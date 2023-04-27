@@ -28,6 +28,9 @@ import qualified Lexer
     '<>'        { Lexer.HReflectOp }
     '^^'        { Lexer.VReflectOp }
     '#'         { Lexer.BlankOp }
+    '&'         { Lexer.TileAndOp }
+    '|'         { Lexer.TileOrOp }
+    '?'         { Lexer.TileNotOp }
 
     -- Comparison operators
 
@@ -82,9 +85,9 @@ import qualified Lexer
 %nonassoc '==' '!=' '>' '<' '>=' '<='
 %left '+' '-'
 %left '*' '/' '%'
-%left '++' '::'
+%left '++' '::' '&' '|'
 %left '~' '**'
-%right '<>' '^^' '#'
+%right '<>' '^^' '#' '?'
 %right '!'
 
 %%
@@ -129,6 +132,9 @@ Expression : Expression '&&' Expression                         { AndOp $1 $3 }
     | Expression '::' Expression                                { VJoinOp $1 $3 }
     | Expression '~' Expression                                 { RotateOp $1 $3 }
     | Expression '**' Expression                                { ScaleOp $1 $3 }
+    | Expression '&' Expression                                 { TileAndOp $1 $3 }
+    | Expression '|' Expression                                 { TileOrOp $1 $3 }
+    | '?' Expression                                            { TileNotOp $2 }
     | '<>' Expression                                           { HReflectOp $2 }
     | '^^' Expression                                           { VReflectOp $2 }
     | '#' Expression                                            { BlankOp $2 }
@@ -186,6 +192,9 @@ data Expr =
     | HReflectOp Expr
     | VReflectOp Expr
     | BlankOp Expr
+    | TileAndOp Expr Expr
+    | TileOrOp Expr Expr
+    | TileNotOp Expr
     | TileDef [[Int]]
     | TrueLit
     | FalseLit

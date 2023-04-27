@@ -2,27 +2,21 @@ import "tile1" as tile1
 import "tile2" as tile2
 import "tile3" as tile3
 
-let base_tile = []
 let result_tile = []
 
-let blank = []
-blank = # tile1
+let blank = # tile1
 
 for i in 0..49 {
     let row = []
     let temp = []
 
     for j in 0..49 {
-        if ((i + j) < 50) && (j < 25) {
-            temp = ? tile3
-            temp = tile1 & temp
-            row = row ++ temp
+        if (i + j) < 50 && j < 25 {
+            row = row ++ (tile1 & ? tile3)
         }
         else {
-            if (i <= j) && (j >= 25) {
-                temp = ? tile3
-                temp = tile2 & temp
-                row = row ++ temp
+            if i <= j && j >= 25 {
+                row = row ++ (tile2 & ? tile3)
             }
             else {
                 row = row ++ blank

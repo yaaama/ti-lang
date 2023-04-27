@@ -177,6 +177,21 @@ eval env (HReflectOp expr) = TileValue $ map reverse tile where tile = evalTile 
 eval env (VReflectOp expr) = TileValue $ reverse tile where tile = evalTile env expr
 eval env (BlankOp expr) = TileValue $ map (map (const 0)) tile where tile = evalTile env expr
 
+eval env (TileAndOp expr1 expr2) = TileValue $ zipWith (zipWith (\a b -> boolToInt $ intToBool a && intToBool b)) lTile rTile
+    where 
+        lTile = evalTile env expr1
+        rTile = evalTile env expr2
+
+eval env (TileOrOp expr1 expr2) = TileValue $ zipWith (zipWith (\a b -> boolToInt $ intToBool a || intToBool b)) lTile rTile
+    where 
+        lTile = evalTile env expr1
+        rTile = evalTile env expr2
+
+eval env (TileNotOp expr) = TileValue $ map (map (\ c -> if c == 1 then 0 else 1)) tile
+    where 
+        tile = evalTile env expr
+
+
 evalInt :: Environment -> Expr -> Int
 evalInt env expr = x where (IntValue x) = eval env expr
 
@@ -185,6 +200,14 @@ evalBool env expr = x where (BoolValue x) = eval env expr
 
 evalTile :: Environment -> Expr -> [[Int]]
 evalTile env expr = x where (TileValue x) = eval env expr
+
+intToBool :: Int -> Bool
+intToBool 1 = True
+intToBool 0 = False
+
+boolToInt :: Bool -> Int
+boolToInt True = 1
+boolToInt False = 0
 
 -- Implement required interface
 

@@ -178,6 +178,18 @@ typeof env (BlankOp expr) = do
     assertSingleOperand env "#" (expr, TileType)
     return TileType
 
+typeof env (TileAndOp expr1 expr2) = do
+    assertOperands env "&" ((expr1, TileType), (expr2, TileType))
+    return TileType
+
+typeof env (TileOrOp expr1 expr2) = do
+    assertOperands env "|" ((expr1, TileType), (expr2, TileType))
+    return TileType
+
+typeof env (TileNotOp expr) = do
+    assertSingleOperand env "?" (expr, TileType)
+    return TileType
+
 assertOperands :: TypeEnv -> String -> ((Expr, VarType), (Expr, VarType)) -> Writer [String] ()
 assertOperands env sign ((expr1, lt), (expr2, rt))  = do
     t1 <- typeof env expr1
