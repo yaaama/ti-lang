@@ -1,2 +1,23 @@
 #+title: Programming Language Concepts Report
 #+author: Sauhaard Poudel (sp11g19), Brian Le (...)
+
+* Introduction to "TiLang"
+
+*TiLang* is a domain specific language that has been developed in order to solve problems around /tiles/.
+
+The language was developed in order to have a robust and intuitive syntax for efficient rotation, manipulation, and patterning of smaller input tiles to create larger tiles.
+
+A /tile/ is a square collection of discrete cells, each of which is either coloured or uncoloured (represented by 1's and 0's, respectively). The size of a tile is always square, with a tile of size N consisting of N x N cells. With its focus on tiling, TiLang provides a powerful tool for solving complex tiling problems quickly and effectively.
+
+* High level overview of our language
+
+Our language was designed to be as intuitive and simple to understand as possible. It is in the style of an imperative language but it borrows some helpful features that you would see in a functional language (such as Haskell.)
+
+- Tiles can be imported from an external source or they can be created internally.
+  + For example: =let tile = [x]=, where /x/ is a list of row definitions.
+- There are a number of operations you can perform on tiles, such as /rotation/ (=~=), /scaling/ (=**=), /reflecting horizontally/ (=<>=). This list is not exhaustive.
+- Standard mathematical operators are included, as well as comparison operators (such as =<= for /less than/) and boolean operators.
+- Iteration in the form of =for= loops. Ranging across a set of values uses the =..= syntax (similar to Haskell).
+- Conditional statements in the form of =if else= blocks.
+- Curly brace syntax to improve readability.
+- Outputting the tile using the =output= function. # need to finish this off
