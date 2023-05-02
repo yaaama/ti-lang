@@ -1,5 +1,5 @@
 all: clean build Lexer.hs Parser.hs
-	ghc src/Tsl.hs -main-is Tsl -isrc -o build/Tsl -odir build -hidir build
+	ghc src/Tsl.hs -isrc -o build/Tsl -odir build -hidir build
 
 build:
 	mkdir build

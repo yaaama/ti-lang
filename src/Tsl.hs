@@ -1,7 +1,6 @@
-module Tsl where
+module Main where
 
 import Control.Monad (mapM_, when)
-import Data.Bifunctor (Bifunctor(second))
 import Data.List (transpose, unwords, intercalate)
 import Data.Char (digitToInt)
 import System.Environment (getArgs)
@@ -250,7 +249,7 @@ main = do
                 return (file, content)) files
 
         -- Parse imports into tile values
-        let imps = map (second parseTile) fileContents
+        let imps = map (\(file, content) -> (file, parseTile content)) fileContents
         
         -- Execute (imports - environment (scope, out) - ast)
         let (_, out) = execute imps ([[]], []) ast
