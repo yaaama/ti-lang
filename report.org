@@ -20,4 +20,58 @@ Our language was designed to be as intuitive and simple to understand as possibl
 - Iteration in the form of =for= loops. Ranging across a set of values uses the =..= syntax (similar to Haskell).
 - Conditional statements in the form of =if else= blocks.
 - Curly brace syntax to improve readability.
-- Outputting the tile using the =output= function. # need to finish this off
+# Are files outputted or just printed?
+- Outputting the tile using the =output= function.
+# For Brian...
+- Type checking...
+- Strongly or weakly typed...
+
+
+
+
+
+* Implementation of the language
+
+We used *Alex* to produce our lexer generator, *Happy* to generate our parser, and *Haskell* to write our interpreter.
+We made an effort to use as little external tools as we could, so we stuck to the =Base= library in Haskell.
+
+** Formal representation of the language in Backus-Naur form
+
+
+
+#+begin_example
+<Program> ::= <StatementOrExpr> <Program> | epsilon
+<StatementOrExpr> ::= <VariableAssignment> | <ForLoop> | <IfStatement>
+        | <ImportStatement> | <OutputStatement>
+<OutputStatement> ::= "output" <Expression>
+<ImportStatement> ::= "import" '"' <id> '"' "as" <id>
+<VariableAssignment> ::= "let" <id> "=" <Expression> | <id> "=" <Expression>
+<ForLoop> ::= "for" <id> "in" <Expression> ".." <Expression> <Block>
+<IfStatement> ::= "if" <Expression> <Block>
+        | "if" <Expression> <Block> "else" <Block>
+<Block> ::= "{" <Program> "}"
+<Expression> ::= <Expression> "&&" <Expression>
+        | <Expression> "||" <Expression> | <Expression> "==" <Expression>
+        | <Expression> "!=" <Expression> | <Expression> ">" <Expression>
+        | <Expression> "<" <Expression> | <Expression> ">=" <Expression>
+        | <Expression> "<=" <Expression> | <Expression> "+" <Expression>
+        | <Expression> "-" <Expression> | <Expression> "*" <Expression>
+        | <Expression> "/" <Expression> | <Expression> "%" <Expression>
+        | <Expression> "++" <Expression> | <Expression> "::" <Expression>
+        | <Expression> "~" <Expression> | <Expression> "**" <Expression>
+        | <Expression> "&" <Expression> | <Expression> "|" <Expression>
+        | <Expression> "@" "(" <Expression> "," <Expression> "," <Expression> ")"
+        | "?" <Expression> | "<>" <Expression> | "^^" <Expression>
+        | "#" <Expression> | "!" <Expression> | "(" <Expression> ")" | <id>
+        | <int> | "true" | "false" | <TileDefinition>
+<TileDefinition> ::= "[" <RowDefinitions> "]"
+<RowDefinitions> ::= <RowDefinitions> <RowDefinition> | epsilon
+<RowDefinition> ::= "[" <Ints> "]"
+<Ints> ::= <Ints> <int> | <int>
+#+end_example
+
+
+** Lexical scope
+
+
+** Type checking
