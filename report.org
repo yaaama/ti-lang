@@ -1,5 +1,7 @@
 #+title: Programming Language Concepts Report
 #+author: Sauhaard Poudel (sp11g19), Brian Le (...)
+#+options: toc:nil date:nil
+#+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}
 
 * Introduction to "TiLang"
 
@@ -71,7 +73,41 @@ We made an effort to use as little external tools as we could, so we stuck to th
 #+end_example
 
 
-** Lexical scope
+** Lexical generator (Alex)
+
+We used *Alex* to produce our lexical analyser, and opted to use the /basic wrapper/. The basic wrapper is an interface that provides a simple API for scanning input text.
+
+We split up our tokens (a sequence of characters that represent something) into 4 categories:
+1. *Keyword:* This includes things such as =let=, =if=, and =import=.
+2. *Operator:* These are symbols that are used to represent an /action/ or /operation/ performed on one or more variables or values.
+   a. Some example operators including =~= (rotate a tile), ==== (testing for equality) and =+= (addition).
+3. *Literal:* These are pieces of data that appear directly in our programs that are not represented by a variable or expression, such as =true= and =false=.
+4. *Identifier:* This is a string of characters that represent the name associated with specific components of the program (perhaps a variable).
+
+
+** Parser
+
+
+*** Syntax tree in bracketed notation
+
+-----
+#+name: syntax-tree
+#+caption: Please note that the indentations and line breaks were made due to to page size constraints. Also, this syntax tree is a general structure of the language, and is therefore a simplified version.
+#+begin_src
+[Program [StatementOrExpr [VariableAssignment [id] [Expression] ]
+[ForLoop [id] [Expression] [Expression] [Block] ] [IfStatement [Expression]
+[Block] [Block] ] [ImportStatement [id] [id] ] [OutputStatement [Expression] ]
+[Expression [TileOp] [CompareOp] [BoolOp] [BracketedExp] [Id] [Literals] ]] ]
+#+end_src
+-----
+
+
+#+caption: Graphical representation of the syntax tree.
+#+attr_latex: :scale 0.14
+[[./report-resources/syntaxtree.png]]
+
+
+
 
 
 ** Type checking
