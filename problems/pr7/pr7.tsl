@@ -1,0 +1,41 @@
+import "tile1" as tile1
+
+let blank_tile = # tile1
+let tile_q = []
+
+for i in 1..50 {
+    let scaled_tile = tile1 ** (i * 2)
+
+    let blank_row = []
+
+    for j in 1..(i * 2) {
+        blank_row = blank_row ++ blank_tile
+    }
+
+    let blank_column = []
+
+    for j in 1..100 {
+        blank_column = blank_column :: blank_tile
+    }
+
+    let padded = scaled_tile
+    let difference = 100 - i * 2
+
+    for j in 1..difference {
+        padded = blank_row :: padded
+    }
+
+    for j in 1..difference {
+        padded = blank_column ++ padded
+    }
+
+    if i == 1 {
+        tile_q = padded
+    }
+    else {
+        tile_q = (padded | tile_q) & ? (padded & tile_q)
+    }
+}
+
+let result_tile = (tile_q ++ <> tile_q) :: (^^ tile_q ++ <> (^^ tile_q))
+output result_tile
