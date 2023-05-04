@@ -1,6 +1,7 @@
 .DS_Store
 
 build
+problems/pr*/out.tl
 
 # Alex and Happy generated files
 
