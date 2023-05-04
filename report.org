@@ -16,7 +16,7 @@ A /tile/ is a square collection of discrete cells, each of which is either colou
 Our language was designed to be as intuitive and simple to understand as possible. It is in the style of an imperative language but it borrows some helpful features that you would see in a functional language (such as Haskell.)
 
 - Tiles can be imported from an external source or they can be created internally.
-  + For example: =let tile = [x]=, where /x/ is a list of row definitions.
+  + For example: =let tile = [x]=, where /x/ is a list of row definitions, or by using =import "tile_name" as tile_name= to import a tile definition file and assign it a variable in the program.
 - There are a number of operations you can perform on tiles, such as /rotation/ (=~=), /scaling/ (=**=), /reflecting horizontally/ (=<>=). This list is not exhaustive.
 - Standard mathematical operators are included, as well as comparison operators (such as =<= for /less than/) and boolean operators.
 - Iteration in the form of =for= loops. Ranging across a set of values uses the =..= syntax (similar to Haskell).
@@ -102,7 +102,7 @@ We split up our tokens (a sequence of characters that represent something) into 
 -----
 
 
-#+caption: Graphical representation of the syntax tree.
+#+caption: Graphical representation of the syntax tree. Please note that "StatementOrExpr" is misleading as a program cannot just be an expression. The name was kept like that to ensure compatibility.
 #+attr_latex: :scale 0.14
 [[./report-resources/syntaxtree.png]]
 
