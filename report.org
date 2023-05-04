@@ -110,4 +110,22 @@ We split up our tokens (a sequence of characters that represent something) into 
 
 
 
-** Type checking
+** Type checker
+
+*TypeEnv:* A type environment, represented as an association list of variable names and their corresponding types.
+
+*VarType:* A data type defining the types supported by the DSL: IntType, TileType, BoolType, and Undefined.
+
+*unparseType:* A function to convert a VarType into a string representation.
+
+*verify:* The main function to be called with a list of statements in the DSL. It returns a list of errors in the code after running the type checker.
+
+*verifyBlock:* A function that takes a type environment and a list of statements, and returns an updated type environment while reporting any errors through a Writer monad.
+
+*getBinding, addBinding:* Functions to retrieve and add variable bindings to the type environment, respectively.
+
+*verifyStmt:* A function that pattern matches on each statement type and verifies the statement according to the typing rules of the DSL. It returns an updated type environment.
+
+*typeof:* A function that computes the type of an expression in the DSL, returning a VarType wrapped in a Writer monad.
+
+*assertOperands, assertSingleOperand:* Helper functions that check the types of operands for binary and unary operators, respectively, and report type errors if needed.
