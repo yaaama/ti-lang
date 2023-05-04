@@ -1,0 +1,41 @@
+import "tile1" as tile1
+import "tile2" as tile2
+import "tile3" as tile3
+
+let blank_tile = # tile1
+
+let result_tile = []
+
+for i in 0..59 {
+    let row = []
+
+    for j in 0..59 {
+
+        if !(i == 0 && !(j != 0 && j != 1))
+            && !(i == 1 && j == 0)
+            && !(i == 58 && j == 59)
+            && !(i == 59 && !(j != 58 && j != 59)) {
+        
+            let remainder = (i + j) % 3
+            
+            if remainder == 0 {
+                row = row ++ tile2
+            }
+
+            if remainder == 1 {
+                row = row ++ tile1
+            }
+
+            if remainder == 2 {
+                row = row ++ tile3
+            }
+        }
+        else {
+            row = row ++ blank_tile
+        }
+    }
+
+    result_tile = result_tile :: row
+}
+
+output result_tile
