@@ -1,0 +1,30 @@
+import "tile1" as tile1
+
+let blank_tile = # tile1
+
+let base_tile = []
+
+for row in 0..100 {
+    let acc_row = []
+
+    for col in 0..100 {
+        if 2 * col < row {
+            acc_row = acc_row ++ tile1
+        }
+        else {
+            acc_row = acc_row ++ blank_tile
+        }
+    }
+
+    base_tile = base_tile :: acc_row
+}
+
+let first_step = base_tile | ^^ base_tile ~ 90
+
+let shade1 = base_tile ~ 270
+let second_step = (shade1 | first_step) & ? (shade1 & first_step)
+
+let shade2 = ^^ base_tile ~ 180
+let third_step = (shade2 | second_step) & ? (shade2 & second_step)
+
+output third_step
