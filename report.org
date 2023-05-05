@@ -11,7 +11,7 @@ The language was developed in order to have a robust and intuitive syntax for ef
 
 A /tile/ is a square collection of discrete cells, each of which is either coloured or uncoloured (represented by 1's and 0's, respectively). The size of a tile is always square, with a tile of size N consisting of N x N cells. With its focus on tiling, TiLang provides a powerful tool for solving complex tiling problems quickly and effectively.
 
-* High level overview of our language
+* High Level Overview of our Language
 
 Our language was designed to be as intuitive and simple to understand as possible. It is in the style of an imperative language but it borrows some helpful features that you would see in a functional language (such as Haskell.)
 
@@ -32,12 +32,12 @@ Our language was designed to be as intuitive and simple to understand as possibl
 
 
 
-* Implementation of the language
+* Implementation of the Language
 
 We used *Alex* to produce our lexer generator, *Happy* to generate our parser, and *Haskell* to write our interpreter.
-We made an effort to use as little external tools as we could, so we stuck to the =Base= library in Haskell.
+We made an effort to use as few external tools as we could, so we stuck to the =Base= library in Haskell.
 
-** Formal representation of the language in Backus-Naur form
+** Formal Representation of the Language in Backus-Naur form
 
 
 
@@ -85,10 +85,12 @@ We split up our tokens (a sequence of characters that represent something) into 
 4. *Identifier:* This is a string of characters that represent the name associated with specific components of the program (perhaps a variable).
 
 
+
+
 ** Parser
 
 
-*** Syntax tree in bracketed notation
+*** Syntax Tree in Bracketed Notation
 
 -----
 #+name: syntax-tree
@@ -110,7 +112,7 @@ We split up our tokens (a sequence of characters that represent something) into 
 
 
 
-** Type checker
+** Type Checker
 
 *TypeEnv:* A type environment, represented as an association list of variable names and their corresponding types.
 
