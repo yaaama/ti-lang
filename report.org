@@ -34,7 +34,8 @@ We made an effort to use as few external tools as we could, so we stuck to the =
 
 ** Formal Representation of the Language in Backus-Naur form
 
-#+begin_example
+#+caption: Please note: Despite the naming for rule =StatementOrExpr=, it only consists of rules that define statements, not expressions.
+#+begin_src
 <Program> ::= <StatementOrExpr> <Program> | epsilon
 <StatementOrExpr> ::= <VariableAssignment> | <ForLoop> | <IfStatement>
         | <ImportStatement> | <OutputStatement>
@@ -63,9 +64,8 @@ We made an effort to use as few external tools as we could, so we stuck to the =
 <RowDefinitions> ::= <RowDefinitions> <RowDefinition> | epsilon
 <RowDefinition> ::= "[" <Ints> "]"
 <Ints> ::= <Ints> <int> | <int>
-#+end_example
+#+end_src
 
-Note that whilst the rule =StatementOrExpr= is named as such, it only consists of rules that define statements, not expressions.
 
 ** Lexical analysis (Alex)
 
@@ -91,14 +91,13 @@ We split up our tokens (a sequence of characters that represent something) into 
 #+begin_src
 [Program [StatementOrExpr [VariableAssignment [id] [Expression] ]
 [ForLoop [id] [Expression] [Expression] [Block] ] [IfStatement [Expression]
-[Block] [Block] ] [ImportStatement [id] [id] ] [OutputStatement ]
-[Expression [TileOp] [CompareOp] [BoolOp] [BracketedExp] [Id] [Literals] ]] ]
+[Block] [Block] ] [ImportStatement [id] [id] ] [OutputStatement [Expression] ] ] ]
 #+end_src
 -----
 
 
 #+caption: Graphical representation of the syntax tree. Please note that "StatementOrExpr" is misleading as a program cannot just be an expression. The name was kept to ensure compatibility.
-#+attr_latex: :scale 0.14
+#+attr_latex: :scale 0.25
 [[./report-resources/syntaxtree.png]]
 
 
