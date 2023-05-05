@@ -94,17 +94,17 @@ We split up our tokens (a sequence of characters that represent something) into 
 
 -----
 #+name: syntax-tree
-#+caption: Please note that the indentations and line breaks were made due to to page size constraints. Also, this syntax tree is a general structure of the language, and is therefore a simplified version.
+#+caption: Please note that the indentations and line breaks were made due to page size constraints. Also, this syntax tree is a general structure of the language, and is therefore a simplified version.
 #+begin_src
 [Program [StatementOrExpr [VariableAssignment [id] [Expression] ]
 [ForLoop [id] [Expression] [Expression] [Block] ] [IfStatement [Expression]
-[Block] [Block] ] [ImportStatement [id] [id] ] [OutputStatement [Expression] ]
+[Block] [Block] ] [ImportStatement [id] [id] ] [OutputStatement ]
 [Expression [TileOp] [CompareOp] [BoolOp] [BracketedExp] [Id] [Literals] ]] ]
 #+end_src
 -----
 
 
-#+caption: Graphical representation of the syntax tree. Please note that "StatementOrExpr" is misleading as a program cannot just be an expression. The name was kept like that to ensure compatibility.
+#+caption: Graphical representation of the syntax tree. Please note that "StatementOrExpr" is misleading as a program cannot just be an expression. The name was kept to ensure compatibility.
 #+attr_latex: :scale 0.14
 [[./report-resources/syntaxtree.png]]
 
