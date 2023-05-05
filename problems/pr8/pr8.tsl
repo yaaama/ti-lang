@@ -1,0 +1,41 @@
+import "tile1" as blue_tile
+import "tile2" as green_tile
+
+let big_green = green_tile ** 2
+
+let red_block = (^^ big_green ++ ^^ big_green ++ (^^ green_tile :: blue_tile)) ::
+                ((^^ green_tile :: blue_tile :: blue_tile) ++ (^^ big_green :: (blue_tile ++ green_tile)) ++ ((blue_tile ++ blue_tile) :: big_green))
+
+let red_block_r = ((^^ green_tile :: blue_tile) ++ ^^ big_green ++ ^^ big_green) ::
+                    (((blue_tile ++ blue_tile) :: big_green) ++ (^^ big_green :: (green_tile ++ blue_tile)) ++ (^^ green_tile :: blue_tile :: blue_tile))
+
+let purple_block = ((^^ green_tile ++ ^^ blue_tile) :: big_green) ++ (^^ blue_tile :: ^^ blue_tile :: green_tile)
+
+let purple_block_r = (^^ blue_tile :: ^^ blue_tile :: green_tile) ++ ((^^ blue_tile ++ ^^ green_tile) :: big_green)
+
+let orange_block = ^^ big_green ++ (^^ green_tile :: blue_tile)
+
+let orange_block_r = (^^ green_tile :: blue_tile) ++ ^^ big_green
+
+let half_red_composition = red_block :: ^^ red_block
+
+let red_composition = half_red_composition ++ (red_block_r :: ^^ red_block_r)
+
+let red_column = red_composition :: red_composition :: red_composition :: red_composition
+
+let purple_orange_block = purple_block :: orange_block
+
+let purple_orange_block_r = purple_block_r :: orange_block_r
+
+let half_purple_orange_composition = purple_orange_block_r :: ^^ purple_orange_block_r
+
+let purple_orange_composition = (purple_orange_block :: ^^ purple_orange_block) ++ half_purple_orange_composition
+
+let purple_orange_column = purple_orange_composition :: purple_orange_composition :: purple_orange_composition :: purple_orange_composition
+
+let half_red_column = half_red_composition :: half_red_composition :: half_red_composition :: half_red_composition
+
+let half_purple_orange_column = half_purple_orange_composition :: half_purple_orange_composition :: half_purple_orange_composition :: half_purple_orange_composition
+
+let pattern = half_purple_orange_column ++ red_column ++ purple_orange_column ++ red_column ++ purple_orange_column ++ half_red_column
+output pattern
