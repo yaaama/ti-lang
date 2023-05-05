@@ -1,5 +1,5 @@
 #+title: Programming Language Concepts Report
-#+author: Sauhaard Poudel (sp11g19), Brian Le (...)
+#+author: Sauhaard Poudel (sp11g19), Brian Le (dal1g21), Mitali Chavan (mc5g20)
 #+options: toc:nil date:nil
 #+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}
 
@@ -119,7 +119,7 @@ In addition, TiLang type system makes sure that all variables are declared befor
 
 ** Interpreter
 
-The interpreter manages runtime state through the =Environment= data structure, which keeps a stack of =Scope=(s), which are lists of variable bindings, and a list of output strings. Its execution model is based on transformation of this data structure, feeding a resulted environment after excuting a statement to the next one, optionally modifying scopes in between.
+The interpreter manages runtime state through the =Environment= data structure, which keeps a stack of =Scope=(s), which are lists of variable bindings, and a list of output strings. Its execution model is based on transformation of this data structure, feeding a resulted environment after executing a statement to the next one, optionally modifying scopes in between.
 
 The list of output strings is appended to when an =OutputStatement= is executed. Once all statements in the program are executed, these strings are printed to =stdout=.
 
