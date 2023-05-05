@@ -22,11 +22,9 @@ Our language was designed to be as intuitive and simple to understand as possibl
 - Iteration in the form of =for= loops. Ranging across a set of values uses the =..= syntax (similar to Haskell).
 - Conditional statements in the form of =if else= blocks.
 - Curly brace syntax to improve readability.
-# Are files outputted or just printed?
 - Outputting the tile using the =output= function.
-# For Brian...
-- Type checking...
-- Strongly or weakly typed...
+- It is a dynamically typed language, where the variable is only assigned at run time. This allows for greater flexibility.
+- It is a strongly typed language because there is strict enforcement of the type system once the variable is assigned a datatype.
 
 
 
@@ -89,6 +87,7 @@ We split up our tokens (a sequence of characters that represent something) into 
 
 ** Parser
 
+=Happy= was our tool of choice in order to generate our parser. The structure of the language as laid out in Backus-Naur form guided us in the design of the =Happy= file.
 
 *** Syntax Tree in Bracketed Notation
 
@@ -114,20 +113,15 @@ We split up our tokens (a sequence of characters that represent something) into 
 
 ** Type Checker
 
-*TypeEnv:* A type environment, represented as an association list of variable names and their corresponding types.
+The type system for *TiLang* revolves around three main types: =Int=, =Tile=, and =Booleans=. The type system ensures that expressions and statements conform to these types and that operations are performed only on compatible types. The language defines a set of operators with specific type requirements for their operands, which ensures the type safety and correctness of the DSL code.
 
-*VarType:* A data type defining the types supported by the DSL: IntType, TileType, BoolType, and Undefined.
+=Int= represents integer values and is used with arithmetic operators such as addition (=+=), subtraction ( =-= ), multiplication (=*=), division (=/=), and modulo (=%=). Comparison operators, like greater than (=>=), less than (=<=), greater than or equal to (=>==), and less than or equal to (=<==), also expect integer operands and produce a boolean result.
 
-*unparseType:* A function to convert a VarType into a string representation.
+=Tile= denotes tile patterns and is used with operators designed to manipulate and combine tiles. Tile-specific operators include horizontal join (=++=), vertical join (=::=), rotation (=~=), scaling (=**=), horizontal reflection (=<>=), vertical reflection (=^^=), blanking (=#=), tile-wise AND (=&=), tile-wise OR (=|=), tile-wise NOT (=?=), and snipping (=@=). These operators expect tile operands and return a tile result, except for the tile-wise logical operators (=&=, =|=, =?=), which return a boolean result.
 
-*verify:* The main function to be called with a list of statements in the DSL. It returns a list of errors in the code after running the type checker.
+=Booleans= represent boolean values and is used with logical operators such as AND (=&&=), OR (=||=), and NOT (=!=). Equality (====) and inequality (=!==) operators are polymorphic and allow for comparison of values of the same type, but they return a boolean result.
 
-*verifyBlock:* A function that takes a type environment and a list of statements, and returns an updated type environment while reporting any errors through a Writer monad.
+The type checker ensures that all variables are declared before use, and their types are consistent throughout the code. It also enforces that loop indices, conditions in =if= statements, and other constructs adhere to the appropriate types. These rules ensure that a program written in our language will run in a predictable way.
 
-*getBinding, addBinding:* Functions to retrieve and add variable bindings to the type environment, respectively.
 
-*verifyStmt:* A function that pattern matches on each statement type and verifies the statement according to the typing rules of the DSL. It returns an updated type environment.
-
-*typeof:* A function that computes the type of an expression in the DSL, returning a VarType wrapped in a Writer monad.
-
-*assertOperands, assertSingleOperand:* Helper functions that check the types of operands for binary and unary operators, respectively, and report type errors if needed.
+** Interpreter
